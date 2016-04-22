@@ -5,7 +5,7 @@ dir=$1
 countLinesOfFile(){
     c=`cat ${1} | wc -l`
     d=`date`
-    echo "$d, \"Count Bytes of Code\", $c, $1" | tee -a log
+    echo "$d, \"Count Lines of Code\", $c, $1" | tee -a log
 }
 
 countBytesOfFile(){
@@ -21,5 +21,5 @@ if [ -d "$dir" ]; then
     done                
 else                
     countBytesOfFile "${dir}"
-    countLinesOfFile ${filename}
+    countLinesOfFile ${dir}
 fi          

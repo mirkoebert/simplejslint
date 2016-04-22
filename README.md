@@ -1,7 +1,7 @@
 # simplejslint
 Simple JS Lint
 
-Simple tool to check JavaScript (JS) from the command line (BASH).
+Simple tool to check JavaScript (JS) from the command line (BASH). This simple tool helps to build an faster WWW.
 
 Check following rules set:
 - Bad JS Code
@@ -24,14 +24,28 @@ Metric
 
 ## Use
 ### Check JavaScript
+Input: Diretory with JS files or one single JS file.
+Output: Output is also written to an log file (CSV format).
+```
+./simplejslint.sh 20160420/private_product_critical_min.js 
+Fr 22 Apr 2016 19:21:25 CEST, "Count eval",        1, 20160420/private_product_critical_min.js
+Fr 22 Apr 2016 19:21:25 CEST, "Count $",      458, 20160420/private_product_critical_min.js
+Fr 22 Apr 2016 19:21:25 CEST, "Count with",        3, 20160420/private_product_critical_min.js
+Fr 22 Apr 2016 19:21:25 CEST, "Count new",      145, 20160420/private_product_critical_min.js
+Fr 22 Apr 2016 19:21:25 CEST, "Count Pattern for\s+in",        0, 20160420/private_product_critical_min.js
+Fr 22 Apr 2016 19:21:25 CEST, "Count Pattern return\s+null",       22, 20160420/private_product_critical_min.js
+Fr 22 Apr 2016 19:21:25 CEST, "Count Bytes of Code",   270457, 20160420/private_product_critical_min.js
+```
+
 
 ### Check CSS
+Input: Diretory with css files or one single css file.
+Output: Count all CSS warnings and CSS errors that CSS Lint have produce. Output is also written to an log file (CSV format). For a detailed CSS analysis you have to use CSS Lint directly.
 ```
 src/checkCSS.sh 20160420/
 Fr 22 Apr 2016 15:35:56 CEST, "CSS Warnings Count",     1659, 20160420/
 Fr 22 Apr 2016 15:35:56 CEST, "CSS Errors Count",       39, 20160420/
 ```
-Count all CSS warnings and CSS errors that CSS Lint will produce. For a detailed CSS analysis you have to use CSS Lint directly.
 
 ## Rules
 
