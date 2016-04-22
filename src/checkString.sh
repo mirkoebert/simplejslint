@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-#set -x  
+#set -x 
+shopt -s nullglob
 analyzeOneFile() {
     c=`fgrep -o "${1}" "${2}" | wc -l`
     d=`date`

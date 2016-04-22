@@ -14,6 +14,7 @@ countBytesOfFile(){
     echo "$d, \"Count Bytes of Code\", $c, $1" | tee -a log
 }
 
+shopt -s nullglob
 if [ -d "$dir" ]; then
     for filename in ${dir}*.js; do
         countBytesOfFile ${filename} 

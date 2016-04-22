@@ -1,7 +1,7 @@
 # simplejslint
 Simple JS Lint
 
-Simple tool to check JavaScript (JS) from the command line (BASH). This simple tool helps to build an faster WWW.
+Simple tool to check JavaScript (JS) from the command line (BASH). This simple tool helps to build an faster WWW by reducing JS and CSS.
 
 Check following rules set:
 - Bad JS Code
@@ -48,7 +48,7 @@ Fr 22 Apr 2016 15:35:56 CEST, "CSS Errors Count",       39, 20160420/
 ```
 
 ## Rules
-
+See [JavaScript Coding Standards and Best Practices](https://github.com/stevekwan/best-practices/blob/master/javascript/best-practices.md)
 
 ## Dependencies
 - BASH

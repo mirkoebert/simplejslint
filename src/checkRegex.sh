@@ -3,6 +3,7 @@
 dir=$1
 str="$2"
 
+shopt -s nullglob
 analyzeOneFile(){
     c=`fgrep -o -E "$1" ${2} | wc -l`
     d=`date`
