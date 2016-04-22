@@ -9,3 +9,5 @@ src/checkString.sh $dir new
 src/checkRegex.sh  $dir "for\s+in"
 src/checkRegex.sh  $dir "return\s+null"
 
+src/countBytes.sh  $dir
+
