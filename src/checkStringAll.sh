@@ -5,5 +5,7 @@ src/checkString.sh $dir eval
 src/checkString.sh $dir $
 src/checkString.sh $dir with
 src/checkString.sh $dir new
-src/checkString.sh $dir "for in"
+
+src/checkRegex.sh  $dir "for\s+in"
+src/checkRegex.sh  $dir "return\s+null"
 
