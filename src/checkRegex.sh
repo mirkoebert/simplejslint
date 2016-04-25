@@ -12,9 +12,9 @@ analyzeOneFile(){
 
 if [ -d "$dir" ]; then
     for filename in ${dir}*.js; do
-        analyzeOneFile "${str}" ${filename}
+        analyzeOneFile "${str}" ${filename} "$3"
     done
 else
-    analyzeOneFile "${str}" "${dir}"
+    analyzeOneFile "${str}" "${dir}" "$3"
 fi
 
