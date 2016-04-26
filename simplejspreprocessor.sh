@@ -5,7 +5,7 @@ f=tmp
 version=$2
 
 
-count=`grep -n "//#ifdef $version" $f | wc -l`
+count=`grep -n "//#ifdef\s\s*$version" $f | wc -l`
 echo "Incude count: $count"
 
 withoutinclude=t.js
@@ -14,7 +14,7 @@ withoutinclude=t.js
 while [ $count -gt 0 ]
 do
     echo "Loop $count"
-    a=`grep -n "//#ifdef $version" $f | head -n 1 |awk -F: '{print $1}'`
+    a=`grep -n "//#ifdef\s\s*$version" $f | head -n 1 |awk -F: '{print $1}'`
     a=$((a-1))
     #echo "AAA: $a"
     t=`cat $f | wc -l`
