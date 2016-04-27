@@ -1,6 +1,7 @@
 # simplejslint
-Simple JS Lint
+Simple JS Lint and JS Preprocessor
 
+## JS Lint
 Simple tool to check JavaScript (JS) from the command line (BASH). This simple tool helps to build an faster WWW by reducing JS and CSS.
 
 Check following rules set:
@@ -22,8 +23,8 @@ Metric
 - Bytes of Code
 
 
-## Use
-### Check JavaScript
+### Use
+#### Check JavaScript
 Input: Diretory with JS files or one single JS file.
 Output: Output is also written to an log file (CSV format).
 ```
@@ -38,7 +39,7 @@ Fr 22 Apr 2016 19:21:25 CEST, "Count Bytes of Code",   270457, 20160420/private_
 ```
 
 
-### Check CSS
+#### Check CSS
 Input: Diretory with css files or one single css file.
 Output: Count all CSS warnings and CSS errors that CSS Lint have produce. Output is also written to an log file (CSV format). For a detailed CSS analysis you have to use CSS Lint directly.
 ```
@@ -47,11 +48,31 @@ Fr 22 Apr 2016 15:35:56 CEST, "CSS Warnings Count",     1659, 20160420/
 Fr 22 Apr 2016 15:35:56 CEST, "CSS Errors Count",       39, 20160420/
 ```
 
-## Rules
+### Rules
 See [JavaScript Coding Standards and Best Practices](https://github.com/stevekwan/best-practices/blob/master/javascript/best-practices.md)
 
-## Dependencies
+### Dependencies
 - BASH
 - grep
 - wc
-- [CSS Lint](https://github.com/CSSLint/csslint/wiki)
+- [CSS Lint](https://github.com/CSSLint/csslint/wiki)i
+
+
+## JS Preprocessor
+Simple BASH tool to build different JS files from one JS source file. Best use for AB tests. Easy to integrate into build pipelines and easy to use for developers.
+
+### Code Ingegration
+```
+//#ifdef Atest
+aaa=1;
+//#endif
+```
+Start block with name Atest with `//#ifdef Atest`. Close block with `//#endif`. Every ifdef need a closing endif.
+
+### Use
+```
+./simplejspreprocessor.sh big_source.js Atest
+```
+
+### Dependencies
+- BASH
