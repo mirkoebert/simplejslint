@@ -77,3 +77,6 @@ Could also work with Java code but untestet.
 
 ### Dependencies
 - BASH
+- grep
+- wc
+
