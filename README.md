@@ -2,7 +2,7 @@
 Simple JS Lint and JS Preprocessor
 
 ## JS Lint
-Simple tool to check JavaScript (JS) from the command line (BASH). This simple tool helps to build an faster WWW by reducing JS and CSS.
+Simple BASH tool to check JavaScript (JS) from the command line (BASH). This simple tool helps to build an faster WWW by reducing JS and CSS.
 
 Check following rules set:
 - Bad JS Code
@@ -68,6 +68,7 @@ aaa=1;
 //#endif
 ```
 Start block with name Atest with `//#ifdef Atest`. Close block with `//#endif`. Every ifdef need a closing endif.
+Could also work with Java code but untestet.
 
 ### Use
 ```
