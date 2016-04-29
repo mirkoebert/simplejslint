@@ -12,6 +12,7 @@ Check following rules set:
 Bad Code
 - eval
 - return null
+- document.write
 
 JS Speed Brake
 - $ (uses of JQuery)
@@ -49,7 +50,8 @@ Fr 22 Apr 2016 15:35:56 CEST, "CSS Errors Count",       39, 20160420/
 ```
 
 ### Rules
-See [JavaScript Coding Standards and Best Practices](https://github.com/stevekwan/best-practices/blob/master/javascript/best-practices.md)
+- See [JavaScript Coding Standards and Best Practices](https://github.com/stevekwan/best-practices/blob/master/javascript/best-practices.md)
+- [document.write ](http://www.stevesouders.com/blog/2012/04/10/dont-docwrite-scripts/)
 
 ### Dependencies
 - BASH
