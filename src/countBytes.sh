@@ -16,22 +16,24 @@ outputFile=$3
 dir=$1
 
 countLinesOfFile(){
-    cmd=`cat ${1} | wc -l`
+    inputFile=$1
+    count=`cat ${inputFile} | wc -l`
     d=`date`
-    echo "$d, \"Count Lines of Code\", $cmd, $1" | tee -a $outputFile
+    echo "$d, $inputFile, $count, \"Count Lines of Code\"" | tee -a $outputFile
 }
 
 countBytesOfFile(){
-    cmd=`cat ${1} | wc -c`
+    inputFile=$1
+    count=`cat ${inputFile} | wc -c`
     d=`date`
-    echo "$d, \"Count Bytes of Code\", $cmd, $1" | tee -a $outputFile
+    echo "$d, $inputFile, $count, \"Count Bytes of Code\"" | tee -a $outputFile
 }
 
 shopt -s nullglob
 if [ -d "$dir" ]; then
-    for filename in ${dir}*.js; do
+    for filename in ${dir}/*.js; do
         countBytesOfFile ${filename} $outputFile
-        countLinesOfFile ${filename}$outputFile
+        countLinesOfFile ${filename} $outputFile
     done                
 else                
     countBytesOfFile "${dir}" $outputFile

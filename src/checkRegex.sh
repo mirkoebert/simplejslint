@@ -20,13 +20,16 @@ outputFile=$4
 
 shopt -s nullglob
 analyzeOneFile(){
-    cmd=`fgrep -o -E "$1" ${2} | wc -l`
+	regex="$1"
+	inputFile=$2
+	desc="$3"
+    count=`fgrep -o -E "$regex" ${inputFile} | wc -l`
     d=`date`
-    echo "$d, \"Count Pattern $1\", $cmd, $2" | tee -a $outputFile
+    echo "$d, $inputFile, $count, \"Count Pattern $regex\", $desc" | tee -a $outputFile
 }
 
 if [ -d "$dir" ]; then
-    for filename in ${dir}*.js; do
+    for filename in ${dir}/*.js ${dir}/**/*.js; do
         analyzeOneFile "${regex}" ${filename} "$description" $outputFile
     done
 else

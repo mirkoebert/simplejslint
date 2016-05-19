@@ -11,6 +11,10 @@ if [[ $# -ge 2 ]]; then
 	outputFile=$2
 fi
 
-src/checkAll.sh $dir $outputFile
+if [[ -f $outputFile ]]; then 
+	rm $outputFile
+fi
+
+src/checkAllFiles.sh $dir $outputFile
 
 

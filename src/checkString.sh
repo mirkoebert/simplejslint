@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+#set -x 
+
 if [[ $# -ne 4 ]]; then
 	echo "usage: checkString.sh dir str description outputFile"
 	echo
@@ -15,19 +17,20 @@ fi
 description=$3
 outputFile=$4
 
-#set -x 
 shopt -s nullglob
 analyzeOneFile() {
-    cmd=`fgrep -o "${1}" "${2}" | wc -l`
+	pattern="$1"
+	inputFile=$2
+	desc="$3"
+    count=`fgrep -o "${pattern}" "${inputFile}" | wc -l`
     d=`date`
-    echo "$d, \"Count ${1}\", $cmd, $2, $description"  | tee -a $outputFile
+    echo "$d, $inputFile, $count, \"Count ${pattern}\", $description"  | tee -a $outputFile
 }
 
-#set -x  
 dir=$1
 str=$2
 if [ -d "$dir" ]; then
-    for filename in ${dir}*.js; do
+    for filename in ${dir}/*.js ${dir}/**/*.js; do
         analyzeOneFile "${str}" ${filename} "$description" $outputFile
     done
 else
