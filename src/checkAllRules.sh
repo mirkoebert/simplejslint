@@ -16,8 +16,8 @@ outputFile=$2
 
 if [[ $dir == *.js ]]; then
 	src/checkString.sh $dir eval "Potential Slow and Code Smell" $outputFile
-	src/checkString.sh $dir '$(' "JQuery Function, Potential Slow" $outputFile
-	src/checkString.sh $dir '$.' "JQuery Utility Function, Potential Slow" $outputFile
+	src/checkString.sh $dir '$(' "JQuery Function - Potential Slow" $outputFile
+	src/checkString.sh $dir '$.' "JQuery Utility Function - Potential Slow" $outputFile
 	src/checkString.sh $dir with "Potential Slow" $outputFile
 	src/checkString.sh $dir new  "Potential Slow" $outputFile
 	src/checkString.sh $dir "document.write"  "Potential Slow" $outputFile
