@@ -15,7 +15,7 @@ if [[ -f $outputFile ]]; then
 	rm $outputFile
 fi
 
-echo "timestamp,asset,count,metric,description" > $outputFile
+echo "timestamp,asset,basePath,filename,extension,count,metric,description" > $outputFile
 
 src/checkAllFiles.sh $dir $outputFile
 

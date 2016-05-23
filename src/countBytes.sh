@@ -19,14 +19,22 @@ countLinesOfFile(){
     inputFile=$1
     count=`cat ${inputFile} | wc -l`
     d=`date`
-    echo "$d, $inputFile, $count, \"Count Lines of Code\"" | tee -a $outputFile
+    inputFullPath="${inputFile}"
+    inputFilename=${inputFullPath##*/}
+    inputExtension=${inputFilename##*.}
+    inputBasePath=${inputFullPath%$inputFilename}
+    echo "$d, $inputFile, $inputBasePath, $inputFilename, $inputExtension, $count, \"Count Lines of Code\"" | tee -a $outputFile
 }
 
 countBytesOfFile(){
     inputFile=$1
     count=`cat ${inputFile} | wc -c`
     d=`date`
-    echo "$d, $inputFile, $count, \"Count Bytes of Code\"" | tee -a $outputFile
+    inputFullPath="${inputFile}"
+    inputFilename=${inputFullPath##*/}
+    inputExtension=${inputFilename##*.}
+    inputBasePath=${inputFullPath%$inputFilename}
+    echo "$d, $inputFile, $inputBasePath, $inputFilename, $inputExtension, $count, \"Count Bytes of Code\"" | tee -a $outputFile
 }
 
 shopt -s nullglob

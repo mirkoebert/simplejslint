@@ -19,8 +19,12 @@ analyzeOneFile() {
 	warnings=`cat .csslint.tmp | grep "Warning -" | wc -l`
 	errors=`cat .csslint.tmp | grep "Error -" | wc -l`
 	d=`date`
-	echo "$d, $inputFile, $warnings, \"CSS Warnings Count\"" | tee -a $outputFile
-	echo "$d, $inputFile, $errors, \"CSS Errors Count\"" | tee -a $outputFile
+	inputFullPath="${inputFile}"
+    inputFilename=${inputFullPath##*/}
+    inputExtension=${inputFilename##*.}
+    inputBasePath=${inputFullPath%$inputFilename}
+    echo "$d, $inputFile, $inputBasePath, $inputFilename, $inputExtension, $warnings, \"CSS Warnings Count\"" | tee -a $outputFile
+	echo "$d, $inputFile, $inputBasePath, $inputFilename, $inputExtension, $errors, \"CSS Errors Count\"" | tee -a $outputFile
 }
 
 if [ -d "$dir" ]; then

@@ -25,7 +25,11 @@ analyzeOneFile(){
 	desc="$3"
     count=`fgrep -o -E "$regex" ${inputFile} | wc -l`
     d=`date`
-    echo "$d, $inputFile, $count, \"Count Pattern $regex\", $desc" | tee -a $outputFile
+    inputFullPath="${inputFile}"
+    inputFilename=${inputFullPath##*/}
+    inputExtension=${inputFilename##*.}
+    inputBasePath=${inputFullPath%$inputFilename}
+    echo "$d, $inputFile, $inputBasePath, $inputFilename, $inputExtension, $count, \"Count Pattern $regex\", $desc" | tee -a $outputFile
 }
 
 if [ -d "$dir" ]; then

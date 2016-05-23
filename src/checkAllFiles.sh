@@ -16,8 +16,12 @@ dir=$1
 outputFile=$2
 
 if [ -d "$dir" ]; then
-	for filename in $(find $dir -iname "*.js"); do src/checkAllRules.sh $filename $outputFile; done
-	for filename in $(find $dir -iname "*.css"); do src/checkAllRules.sh $filename $outputFile; done
+	for filename in $(find $dir -iname "*.js"); do 
+		src/checkAllRules.sh $filename $outputFile 
+	done
+	for filename in $(find $dir -iname "*.css"); do 
+		src/checkAllRules.sh $filename $outputFile
+	done
 else
     src/checkAllRules.sh "${dir}" $outputFile
 fi

@@ -24,7 +24,11 @@ analyzeOneFile() {
 	desc="$3"
     count=`fgrep -o "${pattern}" "${inputFile}" | wc -l`
     d=`date`
-    echo "$d, $inputFile, $count, \"Count ${pattern}\", $description"  | tee -a $outputFile
+    inputFullPath="${inputFile}"
+    inputFilename=${inputFullPath##*/}
+    inputExtension=${inputFilename##*.}
+    inputBasePath=${inputFullPath%$inputFilename}
+    echo "$d, $inputFile, $inputBasePath, $inputFilename, $inputExtension, $count, \"Count ${pattern}\", $description"  | tee -a $outputFile
 }
 
 dir=$1
