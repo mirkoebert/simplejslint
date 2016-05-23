@@ -1,2 +1,4 @@
 *results.csv
 /assets
+*.tar
+*.tmp
