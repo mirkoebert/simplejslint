@@ -44,8 +44,10 @@ Paths.get(resultFile).withReader { reader ->
             */
         }
     }
-    println result
-    createReport(resultFile, result)
+    println "result file ${resultFile} processed"
+    println "start generating report"
+    def reportFile = createReport(resultFile, result)
+    println "report ${reportFile} generated"
 }
 
 def computePathElements(def recordMap) {
@@ -108,11 +110,12 @@ def addMetric(def node, def recordMap) {
 }
 
 def createReport(def resultFile, def result) {
-    def writer = new FileWriter('report.html')
+    def assetArtefact = resultFile - "_results.csv"
+    def reportName = "${assetArtefact}_report.html"
+    def writer = new FileWriter(reportName)
+    writer.println("<!DOCTYPE html>")
     def html   = new groovy.xml.MarkupBuilder(writer)
     //def helper = new groovy.xml.MarkupBuilderHelper(html)
-    html.mkp.yieldUnescaped """<!DOCTYPE html>
-    """
     html.html(lang:"en") {
         head {
             meta(charset:"utf-8")
@@ -122,7 +125,7 @@ def createReport(def resultFile, def result) {
             link(href:"src/css/bootstrap.min.css", rel:"stylesheet")
         }
         body(class:"container-fluid") {
-            h1 "Asset Metrics Report for ${resultFile}"
+            h1 "Asset Metrics Report for ${assetArtefact}.tar"
             br()
             result.each() { assetType, resultTypeNode ->
                 h2 "${assetType}"
@@ -182,4 +185,5 @@ def createReport(def resultFile, def result) {
  
         }
     }
+    return reportName
 }
