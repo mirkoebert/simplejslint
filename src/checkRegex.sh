@@ -29,7 +29,7 @@ analyzeOneFile(){
     inputFilename=${inputFullPath##*/}
     inputExtension=${inputFilename##*.}
     inputBasePath=${inputFullPath%$inputFilename}
-    echo "$d, $inputFile, $inputBasePath, $inputFilename, $inputExtension, $count, \"Count Pattern $regex\", $desc" | tee -a $outputFile
+    echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,\"Count Pattern $regex\",$desc" | tee -a $outputFile
 }
 
 if [ -d "$dir" ]; then

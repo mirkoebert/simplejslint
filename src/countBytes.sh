@@ -23,7 +23,7 @@ countLinesOfFile(){
     inputFilename=${inputFullPath##*/}
     inputExtension=${inputFilename##*.}
     inputBasePath=${inputFullPath%$inputFilename}
-    echo "$d, $inputFile, $inputBasePath, $inputFilename, $inputExtension, $count, \"Count Lines of Code\"" | tee -a $outputFile
+    echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,\"Count Lines of Code\"" | tee -a $outputFile
 }
 
 countBytesOfFile(){
@@ -34,7 +34,7 @@ countBytesOfFile(){
     inputFilename=${inputFullPath##*/}
     inputExtension=${inputFilename##*.}
     inputBasePath=${inputFullPath%$inputFilename}
-    echo "$d, $inputFile, $inputBasePath, $inputFilename, $inputExtension, $count, \"Count Bytes of Code\"" | tee -a $outputFile
+    echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,\"Count Bytes of Code\"" | tee -a $outputFile
 }
 
 shopt -s nullglob

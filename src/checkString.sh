@@ -28,7 +28,7 @@ analyzeOneFile() {
     inputFilename=${inputFullPath##*/}
     inputExtension=${inputFilename##*.}
     inputBasePath=${inputFullPath%$inputFilename}
-    echo "$d, $inputFile, $inputBasePath, $inputFilename, $inputExtension, $count, \"Count ${pattern}\", $description"  | tee -a $outputFile
+    echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,\"Count ${pattern}\",$description"  | tee -a $outputFile
 }
 
 dir=$1
