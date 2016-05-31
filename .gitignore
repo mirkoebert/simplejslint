@@ -2,3 +2,7 @@
 /assets
 *.tar
 *.tmp
+resources*_results.csv
+resources*_report.html
+thirdparty
+
