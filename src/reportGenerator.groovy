@@ -18,31 +18,15 @@ Paths.get(resultFile).withReader { reader ->
         computeFileNameElements(recordMap)
         // create structure within result for new asset
         createResultStructureForAsset(result, recordMap)
-        if (recordMap.isOutputFile) {
-            //println "found outputFileMetric : $recordMap with assetType=$assetType, assetVertical=$assetVertical and outputFileType=$outputFileType"
-            if (! result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion][recordMap.outputFileType]) {
-                result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion][recordMap.outputFileType] = [:]
-            }
-            def node = result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion][recordMap.outputFileType]
-            if (! node[recordMap.filename]) {
-                node[recordMap.filename] = createResultEntry(recordMap)
-            }
-            addMetric(node[recordMap.filename], recordMap)
-        } else {
-            //println "found inputFile : $recordMap with fileNameParts[0]='${fileNameParts[0]}'"
-            def node = result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion]
-            if (! node.inputFiles[recordMap.filename]) {
-                node.inputFiles[recordMap.filename] = createResultEntry(recordMap)
-            } 
-            node.metrics.count++
-            addMetric(node.inputFiles[recordMap.filename], recordMap)
-            /*
-            if ("all" == recordMap.assetVertical) {
-                String inputFileRegion = recordMap.outputFileType
-                String vertical = recordMap.outputFileType.isNumber() ? "assets" : recordMap.outputFileType
-            }
-            */
+        
+        if (! result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion].artefacts[recordMap.artefactTitel]) {
+            result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion].artefacts[recordMap.artefactTitel] = [:] as TreeMap
         }
+        def node = result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion].artefacts[recordMap.artefactTitel]
+        if (! node[recordMap.filename]) {
+            node[recordMap.filename] = createResultEntry(recordMap)
+        }
+        addMetric(node[recordMap.filename], recordMap)
     }
     println "result file ${resultFile} processed"
     println "start generating report"
@@ -59,26 +43,34 @@ def computePathElements(def recordMap) {
 }
 
 def computeFileNameElements(def e) {
+    def artefactTypes = [
+        "public":"1. public artefacts",
+        "private":"2. private artefacts",
+        "inputFiles":"3. input files"
+    ]
+
     String[] fileNameParts = e.filename.split("_")
-    e.outputFileType = fileNameParts[0].trim()
-    e.isPrivate = ('private' == e.outputFileType)
-    e.isPublic = ('public' == e.outputFileType) 
-    e.isThirdparty = ('thirdparty' == e.outputFileType) 
+    e.artefactType = fileNameParts[0].trim()
+    e.isPrivate = ('private' == e.artefactType)
+    e.isPublic = ('public' == e.artefactType) 
+    e.isThirdparty = ('thirdparty' == e.artefactType) 
     e.isOutputFile = e.isPrivate || e.isPublic || e.isThirdparty
     e.isInputFile = !e.isOutputFile
+    if (e.isInputFile) { e.artefactType = "inputFiles"}
     e.isNonCritical = (e.isPrivate || e.isPublic) && (fileNameParts.length > 2 ) && ('non-critical' == fileNameParts[2])
     e.pageType = (e.isPrivate || e.isPublic) ? fileNameParts[1] : ""
+    e.artefactTitel = artefactTypes[e.artefactType]
 }
 
 def createResultStructureForAsset(def result, def recordMap) {
     if (! result[recordMap.assetType]) {
-        result[recordMap.assetType] = [:]
+        result[recordMap.assetType] = [:] as TreeMap
     }
     if (! result[recordMap.assetType][recordMap.assetVertical]) {
-        result[recordMap.assetType][recordMap.assetVertical] = [:]
+        result[recordMap.assetType][recordMap.assetVertical] = [:] as TreeMap
     }
     if (! result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion]) {
-        result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion] = [metrics:[count:0],inputFiles:[:]]
+        result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion] = [metrics:[count:0], artefacts:[:] as TreeMap]
     }
     def resultNode = result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion]
     if (recordMap.assetVertical == "all") {
@@ -92,7 +84,7 @@ def createResultStructureForVertical(def resultNode, def recordMap) {
         resultNode.verticals = [:]
     }
     if (!resultNode.verticals[recordMap.vertical]) {
-        resultNode.verticals[recordMap.vertical] = [metrics:[count:0],inputFiles:[:]]
+        resultNode.verticals[recordMap.vertical] = [ metrics:[count:0]]//,inputFiles:[:] as TreeMap ]
     }
 }
 
@@ -128,47 +120,60 @@ def createReport(def resultFile, def result) {
             h1 "Asset Metrics Report for ${assetArtefact}.tar"
             br()
             result.each() { assetType, resultTypeNode ->
-                h2 "${assetType}"
-                resultTypeNode.each() { assetVertical, resultVerticalNode ->
-                    resultVerticalNode.each() { assetVersion, resultVersionNode ->
-                        h3 "${assetVertical} - version:${assetVersion}" 
-                        resultVersionNode.each() { outputFileType, resultOutputFileTypeNode ->
-                            if (outputFileType != "metrics") {
-                                h4 "${outputFileType}"
-                                table(class:"table table-striped table-bordered table-hover") {
-                                    thead {
-                                        tr(class:"active") {
-                                            //th "node"
-                                            //th "metrics"
-                                            th "artefact"
-                                            th "LoC"
-                                            th "Size"
-                                            th "Count eval"
-                                            th "Count new"
-                                            th "Count with"
-                                            th "jQuery Calls \$("
-                                            th "jQuery Function Calls \$."
-                                            th "document.write"
-                                            th "Count Pattern for\\s+in"
-                                            th "Count Pattern return\\s+null"
-                                        }
-                                    }
-                                    tbody {
-                                        resultOutputFileTypeNode.each() { outputFileName, outputFileNameNode ->
-                                            tr {
-                                                //td "${outputFileNameNode}"
-                                                //td "${outputFileNameNode.metrics}"
-                                                td "${outputFileName}"
-                                                td "${outputFileNameNode.metrics['Count Lines of Code']}"
-                                                td "${outputFileNameNode.metrics['Count Bytes of Code']}"
-                                                td "${outputFileNameNode.metrics['Count eval']}"
-                                                td "${outputFileNameNode.metrics['Count new']}"
-                                                td "${outputFileNameNode.metrics['Count with']}"
-                                                td "${outputFileNameNode.metrics['Count $(']}"
-                                                td "${outputFileNameNode.metrics['Count $.']}"
-                                                td "${outputFileNameNode.metrics['document.write']}"
-                                                td "${outputFileNameNode.metrics['Count Pattern for\\s+in']}"
-                                                td "${outputFileNameNode.metrics['Count Pattern return\\s+null']}"
+                div(class:"container") {
+                    h2 "${assetType}"
+                    resultTypeNode.each() { assetVertical, resultVerticalNode ->
+                        h3 "${assetVertical}"
+                        ul(class:"nav nav-pills") {
+                            resultVerticalNode.each() { assetVersion, resultVersionNode ->
+                                li(class:(assetVersion=="latest" ? "active" : "")) { 
+                                    a("data-toggle":"pill", href:"#${assetVertical}_${assetVersion}", "${assetVersion}") 
+                                }
+                            }
+                        }
+                        div(class:"tab-content") {
+                            resultVerticalNode.each() { assetVersion, resultVersionNode ->
+                                div(id:"${assetVertical}_${assetVersion}", class:(assetVersion=="latest" ? "tab-pane fade in active" : "tab-pane fade")) {
+                                    resultVersionNode.artefacts.each() { artefactTitle, artefactsNode ->
+                                        if (artefactTitle != "metrics") {
+                                            h4 "${artefactTitle}"
+                                            table(class:"table table-striped table-bordered table-hover") {
+                                                thead {
+                                                    tr(class:"info") {
+                                                        //th "node"
+                                                        //th "metrics"
+                                                        th "artefact"
+                                                        th "LoC"
+                                                        th "Size"
+                                                        th "Count eval"
+                                                        th "Count new"
+                                                        th "Count with"
+                                                        th "jQuery Calls \$("
+                                                        th "jQuery Function Calls \$."
+                                                        th "document.write"
+                                                        th "Count Pattern for\\s+in"
+                                                        th "Count Pattern return\\s+null"
+                                                    }
+                                                }
+                                                tbody {
+                                                    artefactsNode.each() { outputFileName, outputFileNameNode ->
+                                                        tr {
+                                                            //td "${outputFileNameNode}"
+                                                            //td "${outputFileNameNode.metrics}"
+                                                            td "${outputFileName}"
+                                                            td "${outputFileNameNode.metrics['Count Lines of Code']}"
+                                                            td "${outputFileNameNode.metrics['Count Bytes of Code']}"
+                                                            td "${outputFileNameNode.metrics['Count eval']}"
+                                                            td "${outputFileNameNode.metrics['Count new']}"
+                                                            td "${outputFileNameNode.metrics['Count with']}"
+                                                            td "${outputFileNameNode.metrics['Count $(']}"
+                                                            td "${outputFileNameNode.metrics['Count $.']}"
+                                                            td "${outputFileNameNode.metrics['Count document.write']}"
+                                                            td "${outputFileNameNode.metrics['Count Pattern for\\s+in']}"
+                                                            td "${outputFileNameNode.metrics['Count Pattern return\\s+null']}"
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -178,10 +183,12 @@ def createReport(def resultFile, def result) {
                     }
                 }
             }
-            mkp.comment("jQuery (necessary for Bootstrap's JavaScript plugins)")
-            script(src:"https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js")
-            mkp.comment("Include all compiled plugins (below), or include individual files as needed")
-            script(src:"src/js/bootstrap.min.js")
+            script(src:"https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js") { 
+                mkp.comment("jQuery (necessary for Bootstrap's JavaScript plugins)")
+            }
+            script(src:"src/js/bootstrap.min.js") { 
+                mkp.comment("Include all compiled plugins (below), or include individual files as needed")
+            }
  
         }
     }

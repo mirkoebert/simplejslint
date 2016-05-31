@@ -16,8 +16,8 @@ outputFile=$2
 analyzeOneFile() {
 	inputFile=$1
 	csslint --quiet --ignore=box-sizing,adjoining-classes,compatible-vendor-prefixes,gradients,text-indent --format=compact  $inputFile > .csslint.tmp
-	warnings=`cat .csslint.tmp | grep "Warning -" | wc -l`
-	errors=`cat .csslint.tmp | grep "Error -" | wc -l`
+	warnings=`cat .csslint.tmp | grep "Warning -" | wc -l | tr -d '[[:space:]]'`
+	errors=`cat .csslint.tmp | grep "Error -" | wc -l | tr -d '[[:space:]]'`
 	d=`date`
 	inputFullPath="${inputFile}"
     inputFilename=${inputFullPath##*/}

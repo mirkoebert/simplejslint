@@ -17,7 +17,7 @@ dir=$1
 
 countLinesOfFile(){
     inputFile=$1
-    count=`cat ${inputFile} | wc -l`
+    count=`cat ${inputFile} | wc -l | tr -d '[[:space:]]'`
     d=`date`
     inputFullPath="${inputFile}"
     inputFilename=${inputFullPath##*/}
@@ -28,7 +28,7 @@ countLinesOfFile(){
 
 countBytesOfFile(){
     inputFile=$1
-    count=`cat ${inputFile} | wc -c`
+    count=`cat ${inputFile} | wc -c | tr -d '[[:space:]]'`
     d=`date`
     inputFullPath="${inputFile}"
     inputFilename=${inputFullPath##*/}

@@ -22,7 +22,7 @@ analyzeOneFile() {
 	pattern="$1"
 	inputFile=$2
 	desc="$3"
-    count=`fgrep -o "${pattern}" "${inputFile}" | wc -l`
+    count=`fgrep -o "${pattern}" "${inputFile}" | wc -l | tr -d '[[:space:]]'`
     d=`date`
     inputFullPath="${inputFile}"
     inputFilename=${inputFullPath##*/}
