@@ -117,60 +117,76 @@ def createReport(def resultFile, def result) {
             link(href:"src/css/bootstrap.min.css", rel:"stylesheet")
         }
         body(class:"container-fluid") {
-            h1 "Asset Metrics Report for ${assetArtefact}.tar"
-            br()
-            result.each() { assetType, resultTypeNode ->
-                div(class:"container") {
-                    h2 "${assetType}"
-                    resultTypeNode.each() { assetVertical, resultVerticalNode ->
-                        h3 "${assetVertical}"
-                        ul(class:"nav nav-pills") {
-                            resultVerticalNode.each() { assetVersion, resultVersionNode ->
-                                li(class:(assetVersion=="latest" ? "active" : "")) { 
-                                    a("data-toggle":"pill", href:"#${assetVertical}_${assetVersion}", "${assetVersion}") 
-                                }
+            nav(class:"navbar navbar-default navbar-fixed-top") {
+                div(class:"container-fluid") {
+                    div(class:"navbar-header") {
+                        a(class:"navbar-brand", href:"#", "Asset Metrics Report")
+                    }
+                    ul(class:"nav navbar-nav") {
+                        result.js.each() { assetVertical, resultVerticalNode ->
+                            li { 
+                                a(href:"#${assetVertical}_js", "${assetVertical}") 
                             }
                         }
-                        div(class:"tab-content") {
-                            resultVerticalNode.each() { assetVersion, resultVersionNode ->
-                                div(id:"${assetVertical}_${assetVersion}", class:(assetVersion=="latest" ? "tab-pane fade in active" : "tab-pane fade")) {
-                                    resultVersionNode.artefacts.each() { artefactTitle, artefactsNode ->
-                                        if (artefactTitle != "metrics") {
-                                            h4 "${artefactTitle}"
-                                            table(class:"table table-striped table-bordered table-hover") {
-                                                thead {
-                                                    tr(class:"info") {
-                                                        //th "node"
-                                                        //th "metrics"
-                                                        th "artefact"
-                                                        th "LoC"
-                                                        th "Size"
-                                                        th "Count eval"
-                                                        th "Count new"
-                                                        th "Count with"
-                                                        th "jQuery Calls \$("
-                                                        th "jQuery Function Calls \$."
-                                                        th "document.write"
-                                                        th "Count Pattern for\\s+in"
-                                                        th "Count Pattern return\\s+null"
+                    }
+                }
+            }
+            div(class:"container",style:"margin-top:50px;") {
+                h1 "Asset Metrics Report for ${assetArtefact}.tar"
+                br()
+                result.each() { assetType, resultTypeNode ->
+                    div(class:"container") {
+                        h2 "${assetType}"
+                        resultTypeNode.each() { assetVertical, resultVerticalNode ->
+                            h3(id:"${assetVertical}_${assetType}", style:"padding-top:55px;", "${assetVertical}")
+                            ul(class:"nav nav-pills") {
+                                resultVerticalNode.each() { assetVersion, resultVersionNode ->
+                                    li(class:(assetVersion=="latest" ? "active" : "")) { 
+                                        a("data-toggle":"pill", href:"#${assetVertical}_${assetVersion}", "${assetVersion}") 
+                                    }
+                                }
+                            }
+                            div(class:"tab-content") {
+                                resultVerticalNode.each() { assetVersion, resultVersionNode ->
+                                    div(id:"${assetVertical}_${assetVersion}", class:(assetVersion=="latest" ? "tab-pane fade in active" : "tab-pane fade")) {
+                                        resultVersionNode.artefacts.each() { artefactTitle, artefactsNode ->
+                                            if (artefactTitle != "metrics") {
+                                                h4 "${artefactTitle}"
+                                                table(class:"table table-striped table-bordered table-hover") {
+                                                    thead {
+                                                        tr(class:"info") {
+                                                            //th "node"
+                                                            //th "metrics"
+                                                            th "artefact"
+                                                            th "LoC"
+                                                            th "Size"
+                                                            th "Count eval"
+                                                            th "Count new"
+                                                            th "Count with"
+                                                            th "jQuery Calls \$("
+                                                            th "jQuery Function Calls \$."
+                                                            th "document.write"
+                                                            th "Count Pattern for\\s+in"
+                                                            th "Count Pattern return\\s+null"
+                                                        }
                                                     }
-                                                }
-                                                tbody {
-                                                    artefactsNode.each() { outputFileName, outputFileNameNode ->
-                                                        tr {
-                                                            //td "${outputFileNameNode}"
-                                                            //td "${outputFileNameNode.metrics}"
-                                                            td "${outputFileName}"
-                                                            td "${outputFileNameNode.metrics['Count Lines of Code']}"
-                                                            td "${outputFileNameNode.metrics['Count Bytes of Code']}"
-                                                            td "${outputFileNameNode.metrics['Count eval']}"
-                                                            td "${outputFileNameNode.metrics['Count new']}"
-                                                            td "${outputFileNameNode.metrics['Count with']}"
-                                                            td "${outputFileNameNode.metrics['Count $(']}"
-                                                            td "${outputFileNameNode.metrics['Count $.']}"
-                                                            td "${outputFileNameNode.metrics['Count document.write']}"
-                                                            td "${outputFileNameNode.metrics['Count Pattern for\\s+in']}"
-                                                            td "${outputFileNameNode.metrics['Count Pattern return\\s+null']}"
+                                                    tbody {
+                                                        artefactsNode.each() { outputFileName, outputFileNameNode ->
+                                                            tr {
+                                                                //td "${outputFileNameNode}"
+                                                                //td "${outputFileNameNode.metrics}"
+                                                                td "${outputFileName}"
+                                                                td "${outputFileNameNode.metrics['Count Lines of Code']}"
+                                                                td "${outputFileNameNode.metrics['Count Bytes of Code']}"
+                                                                td "${outputFileNameNode.metrics['Count eval']}"
+                                                                td "${outputFileNameNode.metrics['Count new']}"
+                                                                td "${outputFileNameNode.metrics['Count with']}"
+                                                                td "${outputFileNameNode.metrics['Count $(']}"
+                                                                td "${outputFileNameNode.metrics['Count $.']}"
+                                                                td "${outputFileNameNode.metrics['Count document.write']}"
+                                                                td "${outputFileNameNode.metrics['Count Pattern for\\s+in']}"
+                                                                td "${outputFileNameNode.metrics['Count Pattern return\\s+null']}"
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -183,7 +199,7 @@ def createReport(def resultFile, def result) {
                     }
                 }
             }
-            script(src:"https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js") { 
+            script(src:"src/js/jquery.min.js") { 
                 mkp.comment("jQuery (necessary for Bootstrap's JavaScript plugins)")
             }
             script(src:"src/js/bootstrap.min.js") { 
