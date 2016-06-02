@@ -11,9 +11,9 @@ Paths.get(resultFile).withReader { reader ->
 
     csv.iterator().each() { record ->
         def recordMap = record.toMap()
-        if ("css" == recordMap.extension) return
         // Pfadbestandteile ermitteln
         computePathElements(recordMap)
+        if (recordMap.assetVertical=="fonts") { return }
         // Dateinamensbestandteile ermitteln und verarbeiten
         computeFileNameElements(recordMap)
         // create structure within result for new asset
@@ -124,8 +124,14 @@ def createReport(def resultFile, def result) {
                     }
                     ul(class:"nav navbar-nav") {
                         result.js.each() { assetVertical, resultVerticalNode ->
-                            li { 
-                                a(href:"#${assetVertical}_js", "${assetVertical}") 
+                            li(class:"dropdown") {
+                                a(class:"dropdown-toggle", "data-toggle":"dropdown", href:"#", "${assetVertical}") {
+                                    span(class:"caret")
+                                } 
+                                ul(class:"dropdown-menu") {
+                                    li { a(href:"#${assetVertical}_js", "js") }
+                                    li { a(href:"#${assetVertical}_css", "css") }
+                                }
                             }
                         }
                     }
@@ -138,7 +144,7 @@ def createReport(def resultFile, def result) {
                     div(class:"container") {
                         h2 "${assetType}"
                         resultTypeNode.each() { assetVertical, resultVerticalNode ->
-                            h3(id:"${assetVertical}_${assetType}", style:"padding-top:55px;", "${assetVertical}")
+                            h3(id:"${assetVertical}_${assetType}", style:"padding-top:55px;", "${assetVertical} (${assetType})")
                             ul(class:"nav nav-pills") {
                                 resultVerticalNode.each() { assetVersion, resultVersionNode ->
                                     li(class:(assetVersion=="latest" ? "active" : "")) { 
