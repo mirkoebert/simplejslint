@@ -1,37 +1,53 @@
 @Grab('org.apache.commons:commons-csv:1.2')
+@Grab("commons-io:commons-io:2.4")
 import org.apache.commons.csv.CSVParser
 import static org.apache.commons.csv.CSVFormat.*
 import java.nio.file.Paths
+import org.apache.commons.io.FileUtils
 
-def result = [js:[:],css:[:]]
+// processing resultFile
+def resultFile = args.length > 0 ? args[0] : 'build/resources-3.5.3082_results.csv'
+def resultMap = retrieveResult(resultFile)
+println "result file ${resultFile} processed"
 
-def resultFile = args.length > 0 ? args[0] : 'resources-3.5.3082_results.csv'
-Paths.get(resultFile).withReader { reader ->
-    CSVParser csv = new CSVParser(reader, DEFAULT.withHeader())
+// generating report
+println "start generating report"
+def reportFile = createReport(resultFile, resultMap)
+println "report ${reportFile} generated"
 
-    csv.iterator().each() { record ->
-        def recordMap = record.toMap()
-        // Pfadbestandteile ermitteln
-        computePathElements(recordMap)
-        if (recordMap.assetVertical=="fonts") { return }
-        // Dateinamensbestandteile ermitteln und verarbeiten
-        computeFileNameElements(recordMap)
-        // create structure within result for new asset
-        createResultStructureForAsset(result, recordMap)
-        
-        if (! result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion].artefacts[recordMap.artefactTitel]) {
-            result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion].artefacts[recordMap.artefactTitel] = [:] as TreeMap
+// copying static artefacts
+def buildDir = extractBaseDirFromFilename(resultFile)
+println "copy static artefacts from 'src' to '${buildDir}'"
+copyStaticArtefacts("src", buildDir)
+println "static artefacts copied"
+
+def retrieveResult(String resultFile) {
+    def result = [js:[:],css:[:]]
+
+    Paths.get(resultFile).withReader { reader ->
+        CSVParser csv = new CSVParser(reader, DEFAULT.withHeader())
+
+        csv.iterator().each() { record ->
+            def recordMap = record.toMap()
+            // Pfadbestandteile ermitteln
+            computePathElements(recordMap)
+            if (recordMap.assetVertical=="fonts") { return }
+            // Dateinamensbestandteile ermitteln und verarbeiten
+            computeFileNameElements(recordMap)
+            // create structure within result for new asset
+            createResultStructureForAsset(result, recordMap)
+            
+            if (! result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion].artefacts[recordMap.artefactTitel]) {
+                result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion].artefacts[recordMap.artefactTitel] = [:] as TreeMap
+            }
+            def node = result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion].artefacts[recordMap.artefactTitel]
+            if (! node[recordMap.filename]) {
+                node[recordMap.filename] = createResultEntry(recordMap)
+            }
+            addMetric(node[recordMap.filename], recordMap)
         }
-        def node = result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion].artefacts[recordMap.artefactTitel]
-        if (! node[recordMap.filename]) {
-            node[recordMap.filename] = createResultEntry(recordMap)
-        }
-        addMetric(node[recordMap.filename], recordMap)
     }
-    println "result file ${resultFile} processed"
-    println "start generating report"
-    def reportFile = createReport(resultFile, result)
-    println "report ${reportFile} generated"
+    return result
 }
 
 def computePathElements(def recordMap) {
@@ -114,7 +130,7 @@ def createReport(def resultFile, def result) {
             meta("http-equiv":"X-UA-Compatible", content:"IE=edge")
             meta(name:"viewport", content:"width=device-width, initial-scale=1")
             title 'Asset Metrics Report'
-            link(href:"src/css/bootstrap.min.css", rel:"stylesheet")
+            link(href:"./css/bootstrap.min.css", rel:"stylesheet")
         }
         body(class:"container-fluid") {
             nav(class:"navbar navbar-default navbar-fixed-top") {
@@ -166,14 +182,16 @@ def createReport(def resultFile, def result) {
                                                             th "artefact"
                                                             th "LoC"
                                                             th "Size"
-                                                            th "Count eval"
-                                                            th "Count new"
-                                                            th "Count with"
-                                                            th "jQuery Calls \$("
-                                                            th "jQuery Function Calls \$."
-                                                            th "document.write"
-                                                            th "Count Pattern for\\s+in"
-                                                            th "Count Pattern return\\s+null"
+                                                            if (assetType == "js") {
+                                                                th "Count eval"
+                                                                th "Count new"
+                                                                th "Count with"
+                                                                th "jQuery Calls \$("
+                                                                th "jQuery Function Calls \$."
+                                                                th "document.write"
+                                                                th "Count Pattern for\\s+in"
+                                                                th "Count Pattern return\\s+null"
+                                                            }
                                                         }
                                                     }
                                                     tbody {
@@ -184,14 +202,16 @@ def createReport(def resultFile, def result) {
                                                                 td "${outputFileName}"
                                                                 td "${outputFileNameNode.metrics['Count Lines of Code']}"
                                                                 td "${outputFileNameNode.metrics['Count Bytes of Code']}"
-                                                                td "${outputFileNameNode.metrics['Count eval']}"
-                                                                td "${outputFileNameNode.metrics['Count new']}"
-                                                                td "${outputFileNameNode.metrics['Count with']}"
-                                                                td "${outputFileNameNode.metrics['Count $(']}"
-                                                                td "${outputFileNameNode.metrics['Count $.']}"
-                                                                td "${outputFileNameNode.metrics['Count document.write']}"
-                                                                td "${outputFileNameNode.metrics['Count Pattern for\\s+in']}"
-                                                                td "${outputFileNameNode.metrics['Count Pattern return\\s+null']}"
+                                                                if (assetType == "js") {
+                                                                    td "${outputFileNameNode.metrics['Count eval']}"
+                                                                    td "${outputFileNameNode.metrics['Count new']}"
+                                                                    td "${outputFileNameNode.metrics['Count with']}"
+                                                                    td "${outputFileNameNode.metrics['Count $(']}"
+                                                                    td "${outputFileNameNode.metrics['Count $.']}"
+                                                                    td "${outputFileNameNode.metrics['Count document.write']}"
+                                                                    td "${outputFileNameNode.metrics['Count Pattern for\\s+in']}"
+                                                                    td "${outputFileNameNode.metrics['Count Pattern return\\s+null']}"
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -205,14 +225,28 @@ def createReport(def resultFile, def result) {
                     }
                 }
             }
-            script(src:"src/js/jquery.min.js") { 
+            script(src:"./js/jquery.min.js") { 
                 mkp.comment("jQuery (necessary for Bootstrap's JavaScript plugins)")
             }
-            script(src:"src/js/bootstrap.min.js") { 
+            script(src:"./js/bootstrap.min.js") { 
                 mkp.comment("Include all compiled plugins (below), or include individual files as needed")
             }
  
         }
     }
     return reportName
+}
+
+def extractBaseDirFromFilename(String filename) {
+    def pathElements = filename.split("/")
+    if ( pathElements.length <= 1 ) {
+        return "."
+    }
+    return pathElements.dropRight(1).join("/")
+}
+
+def copyStaticArtefacts(String fromDir, String toDir) {
+    FileUtils.copyDirectory(new File("$fromDir/js"), new File("$toDir/js"))
+    FileUtils.copyDirectory(new File("$fromDir/css"), new File("$toDir/css"))
+    FileUtils.copyDirectory(new File("$fromDir/fonts"), new File("$toDir/fonts"))
 }
