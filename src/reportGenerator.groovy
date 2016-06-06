@@ -242,7 +242,8 @@ def extractBaseDirFromFilename(String filename) {
     if ( pathElements.size() <= 1 ) {
         return "."
     }
-    return pathElements.dropRight(1).join("/")
+    pathElements.pop()
+    return pathElements.join("/")
 }
 
 def copyStaticArtefacts(String fromDir, String toDir) {
