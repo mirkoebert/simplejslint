@@ -238,8 +238,8 @@ def createReport(def resultFile, def result) {
 }
 
 def extractBaseDirFromFilename(String filename) {
-    def pathElements = filename.split("/")
-    if ( pathElements.length <= 1 ) {
+    def pathElements = filename.split("/") as List
+    if ( pathElements.size() <= 1 ) {
         return "."
     }
     return pathElements.dropRight(1).join("/")
