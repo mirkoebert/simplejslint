@@ -52,10 +52,10 @@ def retrieveResult(String resultFile) {
 
 def computePathElements(def recordMap) {
     String[] assetBasePathParts = recordMap.basePath.split("/")
-    recordMap.baseDir = assetBasePathParts[0]
-    recordMap.assetVertical = assetBasePathParts[1]
-    recordMap.assetType = assetBasePathParts[2]
-    recordMap.assetVersion = assetBasePathParts.length > 3 ? assetBasePathParts[3] : ""
+    recordMap.baseDir = assetBasePathParts.length > 0 ? assetBasePathParts[0] : "unknownBaseDir"
+    recordMap.assetVertical = assetBasePathParts.length > 1 ? assetBasePathParts[1] : "unknownAssetVertical"
+    recordMap.assetType = assetBasePathParts.length > 2 ? assetBasePathParts[2] : "unknownAssetType"
+    recordMap.assetVersion = assetBasePathParts.length > 3 ? assetBasePathParts[3] : "unknownAssetVersion"
 }
 
 def computeFileNameElements(def e) {
