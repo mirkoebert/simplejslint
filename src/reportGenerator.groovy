@@ -124,6 +124,7 @@ def createReport(def resultFile, def result) {
     writer.println("<!DOCTYPE html>")
     def html   = new groovy.xml.MarkupBuilder(writer)
     //def helper = new groovy.xml.MarkupBuilderHelper(html)
+    html.setExpandEmptyElements(true)
     html.html(lang:"en") {
         head {
             meta(charset:"utf-8")
@@ -131,6 +132,7 @@ def createReport(def resultFile, def result) {
             meta(name:"viewport", content:"width=device-width, initial-scale=1")
             title 'Asset Metrics Report'
             link(href:"./css/bootstrap.min.css", rel:"stylesheet")
+            link(href:"./css/assetMetricsReport.css", rel:"stylesheet")
         }
         body(class:"container-fluid") {
             nav(class:"navbar navbar-default navbar-fixed-top") {
@@ -177,40 +179,66 @@ def createReport(def resultFile, def result) {
                                                 table(class:"table table-striped table-bordered table-hover sortable") {
                                                     thead {
                                                         tr(class:"info") {
-                                                            //th "node"
-                                                            //th "metrics"
-                                                            th "artefact"
-                                                            th "LoC"
-                                                            th "Size"
+                                                            th('class':'alignLeft', "artefact")
+                                                            th {
+                                                                mkp.yieldUnescaped("Lines&nbsp;of Code")
+                                                            }
+                                                            th("Size")
                                                             if (assetType == "js") {
-                                                                th "Count eval"
-                                                                th "Count new"
-                                                                th "Count with"
-                                                                th "jQuery Calls \$("
-                                                                th "jQuery Function Calls \$."
-                                                                th "document.write"
-                                                                th "Count Pattern for\\s+in"
-                                                                th "Count Pattern return\\s+null"
+                                                                th("Count eval")
+                                                                th("Count new")
+                                                                th("Count with")
+                                                                th("jQuery \$( LocatorCalls")
+                                                                th("jQuery \$. FunctionCalls")
+                                                                th("document.write")
+                                                                th("Count for..in")
+                                                                th {
+                                                                    mkp.yieldUnescaped('Count return&nbsp;null')
+                                                                }
+                                                            }
+                                                            if (assetType == "css") {
+                                                                //th{"metrics"}
+                                                                th("Warnings")
+                                                                th("Errors")
+                                                                th("Media Query rules")
+                                                                th("Breakpunkt M rules")
+                                                                th("Breakpunkt L rules")
+                                                                th("Breakpunkt XL rules")
+                                                                th("Media Query bytes")
+                                                                th("Breakpunkt M bytes")
+                                                                th("Breakpunkt L bytes")
+                                                                th("Breakpunkt XL bytes")
                                                             }
                                                         }
                                                     }
                                                     tbody {
                                                         artefactsNode.each() { outputFileName, outputFileNameNode ->
                                                             tr {
-                                                                //td "${outputFileNameNode}"
-                                                                //td "${outputFileNameNode.metrics}"
-                                                                td "${outputFileName}"
-                                                                td "${outputFileNameNode.metrics['Count Lines of Code']}"
-                                                                td "${outputFileNameNode.metrics['Count Bytes of Code']}"
+                                                                td('class':'alignLeft','data-toggle':'tooltip',title:"${outputFileName}","${outputFileName.size() > 43 ? outputFileName.take(40)+'...' : outputFileName}")
+                                                                td("${outputFileNameNode.metrics.loc}")
+                                                                td("${sprintf('%,d',outputFileNameNode.metrics.bytes as Integer)}")
                                                                 if (assetType == "js") {
-                                                                    td "${outputFileNameNode.metrics['Count eval']}"
-                                                                    td "${outputFileNameNode.metrics['Count new']}"
-                                                                    td "${outputFileNameNode.metrics['Count with']}"
-                                                                    td "${outputFileNameNode.metrics['Count $(']}"
-                                                                    td "${outputFileNameNode.metrics['Count $.']}"
-                                                                    td "${outputFileNameNode.metrics['Count document.write']}"
-                                                                    td "${outputFileNameNode.metrics['Count Pattern for\\s+in']}"
-                                                                    td "${outputFileNameNode.metrics['Count Pattern return\\s+null']}"
+                                                                    td("${outputFileNameNode.metrics.evalCount}")
+                                                                    td("${outputFileNameNode.metrics.newCount}")
+                                                                    td("${outputFileNameNode.metrics.withCount}")
+                                                                    td("${outputFileNameNode.metrics.jQueryLocatorCalls}")
+                                                                    td("${outputFileNameNode.metrics.jQueryFunctionCalls}")
+                                                                    td("${outputFileNameNode.metrics.documentWriteCount}")
+                                                                    td("${outputFileNameNode.metrics.forInCount}")
+                                                                    td("${outputFileNameNode.metrics.returnNullCount}")
+                                                                }
+                                                                if (assetType == "css") {
+                                                                    //td("${outputFileNameNode.metrics}")
+                                                                    td("${outputFileNameNode.metrics.cssWarnings}")
+                                                                    td("${outputFileNameNode.metrics.cssErrors}")
+                                                                    td("${outputFileNameNode.metrics.mediaQueryCount}")
+                                                                    td("${outputFileNameNode.metrics.breakpointMCount}")
+                                                                    td("${outputFileNameNode.metrics.breakpointLCount}")
+                                                                    td("${outputFileNameNode.metrics.breakpointXLCount}")
+                                                                    td("${outputFileNameNode.metrics.mediaQueryBytes}")
+                                                                    td("${outputFileNameNode.metrics.breakpointMBytes}")
+                                                                    td("${outputFileNameNode.metrics.breakpointLBytes}")
+                                                                    td("${outputFileNameNode.metrics.breakpointXLBytes}")
                                                                 }
                                                             }
                                                         }
