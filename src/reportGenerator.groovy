@@ -174,7 +174,7 @@ def createReport(def resultFile, def result) {
                                         resultVersionNode.artefacts.each() { artefactTitle, artefactsNode ->
                                             if (artefactTitle != "metrics") {
                                                 h4 "${artefactTitle}"
-                                                table(class:"table table-striped table-bordered table-hover") {
+                                                table(class:"table table-striped table-bordered table-hover sortable") {
                                                     thead {
                                                         tr(class:"info") {
                                                             //th "node"
@@ -231,7 +231,12 @@ def createReport(def resultFile, def result) {
             script(src:"./js/bootstrap.min.js") { 
                 mkp.comment("Include all compiled plugins (below), or include individual files as needed")
             }
- 
+            script(src:"./js/tether.min.js") { 
+                mkp.comment("Tether (necessary for Bootstrap tooltip plugin)")
+            }
+            script(src:"./js/sorttable.js") { 
+                mkp.comment("Sorttable (http://www.kryogenix.org/code/browser/sorttable/)")
+            }
         }
     }
     return reportName

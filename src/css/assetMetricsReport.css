@@ -1,0 +1,11 @@
+th, th.alignCenter, td.alignCenter {
+	text-align: center;
+}
+
+th.alignLeft, td.alignLeft {
+	text-align: left;
+}
+
+td, th.alignRight, td.alignRight {
+	text-align: right;
+}
