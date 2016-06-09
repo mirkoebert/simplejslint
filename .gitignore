@@ -6,4 +6,4 @@ resources*_results.csv
 resources*_report.html
 thirdparty
 /build
-
+/*.txt
