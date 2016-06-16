@@ -168,15 +168,15 @@ def createReport(def resultFile, def result) {
                         resultTypeNode.each() { assetVertical, resultVerticalNode ->
                             h3(id:"${assetVertical}_${assetType}", style:"padding-top:55px;", "${assetVertical} (${assetType})")
                             ul(class:"nav nav-pills") {
-                                resultVerticalNode.each() { assetVersion, resultVersionNode ->
-                                    li(class:(assetVersion=="latest" ? "active" : "")) { 
-                                        a("data-toggle":"pill", href:"#${assetVertical}_${assetVersion}", "${assetVersion}") 
+                                resultVerticalNode.eachWithIndex { assetVersion, resultVersionNode, index ->
+                                    li(class:(index==0 ? "active" : "")) { 
+                                        a("data-toggle":"pill", href:"#${assetVertical}_${assetVersion}", "${resultVersionNode.outputArtefactName}") 
                                     }
                                 }
                             }
                             div(class:"tab-content") {
-                                resultVerticalNode.each() { assetVersion, resultVersionNode ->
-                                    div(id:"${assetVertical}_${assetVersion}", class:(assetVersion=="latest" ? "tab-pane fade in active" : "tab-pane fade")) {
+                                resultVerticalNode.eachWithIndex { assetVersion, resultVersionNode, index ->
+                                    div(id:"${assetVertical}_${assetVersion}", class:(index==0 ? "tab-pane fade in active" : "tab-pane fade")) {
                                         resultVersionNode.artefacts.each() { artefactTitle, artefactsNode ->
                                             if (artefactTitle != "metrics") {
                                                 h4 "${artefactTitle}"
