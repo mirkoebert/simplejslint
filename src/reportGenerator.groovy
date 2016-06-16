@@ -219,7 +219,7 @@ def createReport(def resultFile, def result) {
                                                         artefactsNode.each() { outputFileName, outputFileNameNode ->
                                                             tr {
                                                                 td('class':'alignLeft','data-toggle':'tooltip',title:"${outputFileName}","${outputFileName.size() > 43 ? outputFileName.take(40)+'...' : outputFileName}")
-                                                                td("${outputFileNameNode.metrics.loc}")
+                                                                td("${sprintf('%,d',outputFileNameNode.metrics.loc as Integer)}")
                                                                 td("${sprintf('%,d',outputFileNameNode.metrics.bytes as Integer)}")
                                                                 if (assetType == "js") {
                                                                     td("${outputFileNameNode.metrics.evalCount}")
