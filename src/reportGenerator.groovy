@@ -140,7 +140,9 @@ def createReport(def resultFile, def result) {
             nav(class:"navbar navbar-default navbar-fixed-top") {
                 div(class:"container-fluid") {
                     div(class:"navbar-header") {
-                        a(class:"navbar-brand", href:"#", "Asset Metrics Report")
+                        a(class:"navbar-brand", href:"#") {
+                            img(src:"./images/scale_performance.png", width:"40")
+                        }
                     }
                     ul(class:"nav navbar-nav") {
                         result.js.each() { assetVertical, resultVerticalNode ->
@@ -282,7 +284,8 @@ def extractBaseDirFromFilename(String filename) {
 }
 
 def copyStaticArtefacts(String fromDir, String toDir) {
-    FileUtils.copyDirectory(new File("$fromDir/js"), new File("$toDir/js"))
-    FileUtils.copyDirectory(new File("$fromDir/css"), new File("$toDir/css"))
-    FileUtils.copyDirectory(new File("$fromDir/fonts"), new File("$toDir/fonts"))
+    ["js","css","fonts","images"].each() { String subdir ->
+        println "  $subdir"
+        FileUtils.copyDirectory(new File("$fromDir/$subdir"), new File("$toDir/$subdir"))
+    }
 }
