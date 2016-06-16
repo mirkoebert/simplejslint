@@ -15,6 +15,9 @@ if [[ $# -ne 5 ]]; then
 	exit
 fi
 
+: ${SEARCH_CMD:=fgrep}
+# echo "SEARCH_CMD used: ${SEARCH_CMD}"
+
 dir=$1
 metric=$2
 pattern=$3
@@ -28,7 +31,7 @@ analyzeOneFile() {
 	pattern="$3"
 	desc="$4"
 	outputFile=$5
-    count=`fgrep -o "${pattern}" "${inputFile}" | wc -l | tr -d '[[:space:]]'`
+    count=`$SEARCH_CMD -F -o "${pattern}" "${inputFile}" | wc -l | tr -d '[[:space:]]'`
     d=`date`
     inputFullPath="${inputFile}"
     inputFilename=${inputFullPath##*/}

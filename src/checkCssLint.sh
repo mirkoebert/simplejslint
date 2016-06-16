@@ -10,14 +10,17 @@ if [[ $# -ne 2 ]]; then
     exit
 fi
 
+: ${SEARCH_CMD:=fgrep}
+# echo "SEARCH_CMD used: ${SEARCH_CMD}"
+
 dir=$1
 outputFile=$2
 
 analyzeOneFile() {
 	inputFile=$1
 	csslint --quiet --ignore=box-sizing,adjoining-classes,compatible-vendor-prefixes,gradients,text-indent --format=compact  $inputFile > .csslint.tmp
-	warnings=`cat .csslint.tmp | grep "Warning -" | wc -l | tr -d '[[:space:]]'`
-	errors=`cat .csslint.tmp | grep "Error -" | wc -l | tr -d '[[:space:]]'`
+	warnings=`cat .csslint.tmp | $SEARCH_CMD -F "Warning -" | wc -l | tr -d '[[:space:]]'`
+	errors=`cat .csslint.tmp | $SEARCH_CMD -F "Error -" | wc -l | tr -d '[[:space:]]'`
 	d=`date`
 	inputFullPath="${inputFile}"
     inputFilename=${inputFullPath##*/}

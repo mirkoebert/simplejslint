@@ -13,6 +13,8 @@ if [[ $# -ne 5 ]]; then
 	exit
 fi
 
+: ${SEARCH_CMD:=egrep}
+# echo "SEARCH_CMD used: ${SEARCH_CMD}"
 
 dir=$1
 metric="$2"
@@ -27,7 +29,7 @@ analyzeOneFile(){
 	regex="$3"
 	desc="$4"
 	outputFile=$5
-    count=`fgrep -o -E "$regex" ${inputFile} | wc -l | tr -d '[[:space:]]'`
+    count=`$SEARCH_CMD -o "$regex" ${inputFile} | wc -l | tr -d '[[:space:]]'`
     d=`date`
     inputFullPath="${inputFile}"
     inputFilename=${inputFullPath##*/}
