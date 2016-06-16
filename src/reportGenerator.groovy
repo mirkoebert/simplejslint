@@ -31,7 +31,18 @@ def retrieveResult(String resultFile) {
             def recordMap = record.toMap()
             // Pfadbestandteile ermitteln
             computePathElements(recordMap)
-            if (recordMap.assetVertical=="fonts") { return }
+            if (recordMap.assetVertical=="fonts") { 
+                // do not handle font css files
+                return 
+            }
+            if (recordMap.assetVersion ==~ /[0-9a-f]{16}/) {
+                //println "handle productive version ${recordMap.assetVersion}"
+            } else { 
+                // all productive artefacts have a hashcode String with 16 characters as version 
+                //println "do not handle development and test only versions: ${recordMap.assetVersion}"
+                return 
+            } 
+
             // Dateinamensbestandteile ermitteln und verarbeiten
             computeFileNameElements(recordMap)
             // create structure within result for new asset
