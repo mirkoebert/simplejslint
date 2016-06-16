@@ -46,16 +46,19 @@ def retrieveResult(String resultFile) {
             // Dateinamensbestandteile ermitteln und verarbeiten
             computeFileNameElements(recordMap)
             // create structure within result for new asset
-            createResultStructureForAsset(result, recordMap)
+            def assetVersionNode = createResultStructureForAsset(result, recordMap)
             
-            if (! result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion].artefacts[recordMap.artefactTitel]) {
-                result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion].artefacts[recordMap.artefactTitel] = [:] as TreeMap
+            if (! assetVersionNode.artefacts[recordMap.artefactTitel]) {
+                assetVersionNode.artefacts[recordMap.artefactTitel] = [:] as TreeMap
+                if (recordMap.artefactTitel == "1. output artefact") {
+                    assetVersionNode.outputArtefactName = recordMap.filename
+                }
             }
-            def node = result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion].artefacts[recordMap.artefactTitel]
-            if (! node[recordMap.filename]) {
-                node[recordMap.filename] = createResultEntry(recordMap)
+            def artefactTitleNode = assetVersionNode.artefacts[recordMap.artefactTitel]
+            if (! artefactTitleNode[recordMap.filename]) {
+                artefactTitleNode[recordMap.filename] = createResultEntry(recordMap)
             }
-            addMetric(node[recordMap.filename], recordMap)
+            addMetric(artefactTitleNode[recordMap.filename], recordMap)
         }
     }
     return result
@@ -71,21 +74,12 @@ def computePathElements(def recordMap) {
 
 def computeFileNameElements(def e) {
     def artefactTypes = [
-        "public":"1. public artefacts",
-        "private":"2. private artefacts",
-        "inputFiles":"3. input files"
+        "outputFile":"1. output artefact",
+        "inputFiles":"2. input files"
     ]
-
     String[] fileNameParts = e.filename.split("_")
-    e.artefactType = fileNameParts[0].trim()
-    e.isPrivate = ('private' == e.artefactType)
-    e.isPublic = ('public' == e.artefactType) 
-    e.isThirdparty = ('thirdparty' == e.artefactType) 
-    e.isOutputFile = e.isPrivate || e.isPublic || e.isThirdparty
-    e.isInputFile = !e.isOutputFile
-    if (e.isInputFile) { e.artefactType = "inputFiles"}
-    e.isNonCritical = (e.isPrivate || e.isPublic) && (fileNameParts.length > 2 ) && ('non-critical' == fileNameParts[2])
-    e.pageType = (e.isPrivate || e.isPublic) ? fileNameParts[1] : ""
+    e.artefactGroup = fileNameParts[0].trim()
+    e.artefactType = ['private','public'].contains(e.artefactGroup) ? 'outputFile' : 'inputFiles'
     e.artefactTitel = artefactTypes[e.artefactType]
 }
 
@@ -100,9 +94,6 @@ def createResultStructureForAsset(def result, def recordMap) {
         result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion] = [metrics:[count:0], artefacts:[:] as TreeMap]
     }
     def resultNode = result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion]
-    if (recordMap.assetVertical == "all") {
-        createResultStructureForVertical(resultNode, recordMap)
-    }
     return resultNode
 }
 
