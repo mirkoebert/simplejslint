@@ -145,9 +145,11 @@ def createReport(def resultFile, def result, def assetArtefact, def reportName) 
                         }
                     }
                     ul(class:"nav navbar-nav") {
-                        result.js.each() { assetVertical, resultVerticalNode ->
+                        result.js.sort {a,b -> 
+                                a.key == "all" ? -1 : a.key<=>b.key
+                            }.each() { assetVertical, resultVerticalNode ->
                             li(class:"dropdown") {
-                                a(class:"dropdown-toggle", "data-toggle":"dropdown", href:"#", "${assetVertical}") {
+                                a(class:"dropdown-toggle", "data-toggle":"dropdown", href:"#", "${assetVertical == 'all' ? 'public' : assetVertical}") {
                                     span(class:"caret")
                                 } 
                                 ul(class:"dropdown-menu") {
@@ -165,8 +167,10 @@ def createReport(def resultFile, def result, def assetArtefact, def reportName) 
                 result.each() { assetType, resultTypeNode ->
                     div(class:"container") {
                         h2 "${assetType}"
-                        resultTypeNode.each() { assetVertical, resultVerticalNode ->
-                            h3(id:"${assetVertical}_${assetType}", style:"padding-top:55px;", "${assetVertical} (${assetType})")
+                        resultTypeNode.sort {a,b -> 
+                                a.key == "all" ? -1 : a.key<=>b.key
+                            }.each() { assetVertical, resultVerticalNode ->
+                            h3(id:"${assetVertical}_${assetType}", style:"padding-top:55px;", "${assetVertical == 'all' ? 'public' : assetVertical} (${assetType})")
                             ul(class:"nav nav-pills") {
                                 resultVerticalNode.eachWithIndex { assetVersion, resultVersionNode, index ->
                                     li(class:(index==0 ? "active" : "")) { 
