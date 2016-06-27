@@ -31,7 +31,7 @@ def jsonOutputFile = createJsonOutput(resultFileName, resultMap, assetArtefact, 
 println "json output ${jsonOutputFile} generated"
 
 def retrieveResult(String resultFile) {
-    def result = [js:[:],css:[:]]
+    def result = [:]
 
     Paths.get(resultFile).withReader { reader ->
         CSVParser csv = new CSVParser(reader, DEFAULT.withHeader())
@@ -93,16 +93,16 @@ def computeFileNameElements(def e) {
 }
 
 def createResultStructureForAsset(def result, def recordMap) {
-    if (! result[recordMap.assetType]) {
-        result[recordMap.assetType] = [:] as TreeMap
+    if (! result[recordMap.assetVertical]) {
+        result[recordMap.assetVertical] = [:] as TreeMap
     }
-    if (! result[recordMap.assetType][recordMap.assetVertical]) {
-        result[recordMap.assetType][recordMap.assetVertical] = [:] as TreeMap
+    if (! result[recordMap.assetVertical][recordMap.assetType]) {
+        result[recordMap.assetVertical][recordMap.assetType] = [:] as TreeMap
     }
-    if (! result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion]) {
-        result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion] = [metrics:[count:0], artefacts:[:] as TreeMap]
+    if (! result[recordMap.assetVertical][recordMap.assetType][recordMap.assetVersion]) {
+        result[recordMap.assetVertical][recordMap.assetType][recordMap.assetVersion] = [artefacts:[:] as TreeMap]
     }
-    def resultNode = result[recordMap.assetType][recordMap.assetVertical][recordMap.assetVersion]
+    def resultNode = result[recordMap.assetVertical][recordMap.assetType][recordMap.assetVersion]
     return resultNode
 }
 
@@ -152,7 +152,7 @@ def createHtmlReport(def resultFile, def result, def assetArtefact, def reportNa
                         }
                     }
                     ul(class:"nav navbar-nav") {
-                        result.js.sort {a,b -> 
+                        result.sort {a,b -> 
                                 a.key == "all" ? -1 : a.key<=>b.key
                             }.each() { assetVertical, resultVerticalNode ->
                             li(class:"dropdown") {
@@ -171,22 +171,27 @@ def createHtmlReport(def resultFile, def result, def assetArtefact, def reportNa
             div(class:"container",style:"margin-top:50px;") {
                 h1 "Asset Metrics Report for ${assetArtefact}.tar"
                 br()
-                result.each() { assetType, resultTypeNode ->
-                    div(class:"container") {
-                        h2 "${assetType}"
-                        resultTypeNode.sort {a,b -> 
-                                a.key == "all" ? -1 : a.key<=>b.key
-                            }.each() { assetVertical, resultVerticalNode ->
-                            h3(id:"${assetVertical}_${assetType}", style:"padding-top:55px;", "${assetVertical == 'all' ? 'public' : assetVertical} (${assetType})")
+                result.sort {a,b -> 
+                        a.key == "all" ? -1 : a.key<=>b.key
+                    }.each() { assetVertical, resultVerticalNode ->
+                        div(class:"container") {
+                        h2(id:"${assetVertical}_css", "${assetVertical == 'all' ? 'public all' : 'private ' + assetVertical}")
+                        resultVerticalNode.each() { assetType, resultTypeNode ->
+                            if (assetType == "js") {
+                                div(id:"${assetVertical}_js", style:"padding-top: 50px;")
+                            }
+                            h3("${assetType}")
                             ul(class:"nav nav-pills") {
-                                resultVerticalNode.eachWithIndex { assetVersion, resultVersionNode, index ->
+                                resultTypeNode.sort{ a,b ->
+                                        a.value.outputArtefactName <=> b.value.outputArtefactName 
+                                    }.eachWithIndex { assetVersion, resultVersionNode, index ->
                                     li(class:(index==0 ? "active" : "")) { 
                                         a("data-toggle":"pill", href:"#${assetVertical}_${assetVersion}", "${resultVersionNode.outputArtefactName}") 
                                     }
                                 }
                             }
                             div(class:"tab-content") {
-                                resultVerticalNode.eachWithIndex { assetVersion, resultVersionNode, index ->
+                                resultTypeNode.eachWithIndex { assetVersion, resultVersionNode, index ->
                                     div(id:"${assetVertical}_${assetVersion}", class:(index==0 ? "tab-pane fade in active" : "tab-pane fade")) {
                                         resultVersionNode.artefacts.each() { artefactTitle, artefactsNode ->
                                             if (artefactTitle != "metrics") {
