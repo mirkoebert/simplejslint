@@ -4,24 +4,31 @@ import org.apache.commons.csv.CSVParser
 import static org.apache.commons.csv.CSVFormat.*
 import java.nio.file.Paths
 import org.apache.commons.io.FileUtils
+import groovy.json.JsonOutput
 
 // processing resultFile
-def resultFile = args.length > 0 ? args[0] : 'build/resources-3.5.3082_results.csv'
-def assetArtefact = resultFile - "_results.csv"
-def reportFileName = args.length > 1 ? args[1] : "${assetArtefact}_report.html"
-def resultMap = retrieveResult(resultFile)
-println "result file ${resultFile} processed"
+def resultFileName = args.length > 0 ? args[0] : 'build/resources-3.5.3082_results.csv'
+String assetArtefact = resultFileName - "_results.csv"
+String htmlReportFileName = args.length > 1 ? args[1] : "${assetArtefact}_report.html"
+String jsonOutputFileName = args.length > 1 ? args[1] - "html" + "json" : "${assetArtefact}_report.json"
+def resultMap = retrieveResult(resultFileName)
+println "result file ${resultFileName} processed"
 
-// generating report
-println "start generating report"
-def reportFile = createReport(resultFile, resultMap, assetArtefact, reportFileName)
-println "report ${reportFile} generated"
+// generating html report
+println "start generating html report"
+def htmlReportFile = createHtmlReport(resultFileName, resultMap, assetArtefact, htmlReportFileName)
+println "report ${htmlReportFile} generated"
 
 // copying static artefacts
-def buildDir = extractBaseDirFromFilename(reportFileName)
+def buildDir = extractBaseDirFromFilename(htmlReportFileName)
 println "copy static artefacts from 'src' to '${buildDir}'"
 copyStaticArtefacts("src", buildDir)
 println "static artefacts copied"
+
+// generate json output
+println "start generating json output in ${jsonOutputFileName}"
+def jsonOutputFile = createJsonOutput(resultFileName, resultMap, assetArtefact, jsonOutputFileName)
+println "json output ${jsonOutputFile} generated"
 
 def retrieveResult(String resultFile) {
     def result = [js:[:],css:[:]]
@@ -121,7 +128,7 @@ def addMetric(def node, def recordMap) {
     node.metrics[recordMap.metric.trim()] = recordMap.count
 }
 
-def createReport(def resultFile, def result, def assetArtefact, def reportName) {
+def createHtmlReport(def resultFile, def result, def assetArtefact, def reportName) {
     def writer = new FileWriter(reportName)
     writer.println("<!DOCTYPE html>")
     def html   = new groovy.xml.MarkupBuilder(writer)
@@ -292,4 +299,13 @@ def copyStaticArtefacts(String fromDir, String toDir) {
         println "  $subdir"
         FileUtils.copyDirectory(new File("$fromDir/$subdir"), new File("$toDir/$subdir"))
     }
+}
+
+def createJsonOutput(def resultFileName, def result, def assetArtefact, def jsonOutputFileName) {
+    new File(jsonOutputFileName).withWriter { writer ->
+        String jsonString = JsonOutput.toJson(result)
+        String prettyJsonString = JsonOutput.prettyPrint(jsonString)
+        writer.write(prettyJsonString)
+    }
+    return jsonOutputFileName
 }
