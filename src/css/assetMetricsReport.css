@@ -9,3 +9,7 @@ th.alignLeft, td.alignLeft {
 td, th.alignRight, td.alignRight {
 	text-align: right;
 }
+
+a.navbar-brand {
+	padding: 2px 15px;
+}

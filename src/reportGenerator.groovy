@@ -141,7 +141,7 @@ def createReport(def resultFile, def result, def assetArtefact, def reportName) 
                 div(class:"container-fluid") {
                     div(class:"navbar-header") {
                         a(class:"navbar-brand", href:"#") {
-                            img(src:"./images/scale_performance.png", width:"40")
+                            img(src:"./images/scale_performance.png", height:"46")
                         }
                     }
                     ul(class:"nav navbar-nav") {
