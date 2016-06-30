@@ -1,22 +1,30 @@
 @Grab('org.apache.commons:commons-csv:1.2')
 @Grab("commons-io:commons-io:2.4")
+@Grab('io.dropwizard.metrics:metrics-core:3.1.0')
+@Grab('io.dropwizard.metrics:metrics-graphite:3.1.0')
 import org.apache.commons.csv.CSVParser
 import static org.apache.commons.csv.CSVFormat.*
 import java.nio.file.Paths
 import org.apache.commons.io.FileUtils
 import groovy.json.JsonOutput
+import com.codahale.metrics.graphite.Graphite
 
-// processing resultFile
+// processing parameters
 def resultFileName = args.length > 0 ? args[0] : 'build/resources-3.5.3082_results.csv'
 String assetArtefact = resultFileName - "_results.csv"
 String htmlReportFileName = args.length > 1 ? args[1] : "${assetArtefact}_report.html"
-String jsonOutputFileName = args.length > 1 ? args[1] - "html" + "json" : "${assetArtefact}_report.json"
-def resultMap = retrieveResult(resultFileName)
+String jsonOutputFileName = htmlReportFileName - "html" + "json"
+String environment = args.length > 2 ? args[2] : "unknown"
+long timestamp = args.length > 3 ? args[3] : ((long) (new Date()).time / 1000)
+println "timestamp=$timestamp"
+
+// processing resultFile
+def resultMap = retrieveResult(resultFileName, assetArtefact, environment, timestamp)
 println "result file ${resultFileName} processed"
 
 // generating html report
 println "start generating html report"
-def htmlReportFile = createHtmlReport(resultFileName, resultMap, assetArtefact, htmlReportFileName)
+def htmlReportFile = createHtmlReport(resultFileName, resultMap, htmlReportFileName)
 println "report ${htmlReportFile} generated"
 
 // copying static artefacts
@@ -27,11 +35,16 @@ println "static artefacts copied"
 
 // generate json output
 println "start generating json output in ${jsonOutputFileName}"
-def jsonOutputFile = createJsonOutput(resultFileName, resultMap, assetArtefact, jsonOutputFileName)
+def jsonOutputFile = createJsonOutput(resultFileName, resultMap, jsonOutputFileName)
 println "json output ${jsonOutputFile} generated"
 
-def retrieveResult(String resultFile) {
-    def result = [:]
+// send metrics to graphite
+println "start pushing metrics to graphite"
+sendMetrics2Graphite(resultMap)
+println "sending graphite metrics completed"
+
+def retrieveResult(String resultFile, String assetArtefact, String environment, long timestamp) {
+    def result = ["environment":environment,"assetArchive":assetArtefact, "timestamp":timestamp, "assets":[:]]
 
     Paths.get(resultFile).withReader { reader ->
         CSVParser csv = new CSVParser(reader, DEFAULT.withHeader())
@@ -55,7 +68,7 @@ def retrieveResult(String resultFile) {
             // Dateinamensbestandteile ermitteln und verarbeiten
             computeFileNameElements(recordMap)
             // create structure within result for new asset
-            def assetVersionNode = createResultStructureForAsset(result, recordMap)
+            def assetVersionNode = createResultStructureForAsset(result["assets"], recordMap)
             
             if (! assetVersionNode.artefacts[recordMap.artefactTitel]) {
                 assetVersionNode.artefacts[recordMap.artefactTitel] = [:] as TreeMap
@@ -88,21 +101,25 @@ def computeFileNameElements(def e) {
     ]
     String[] fileNameParts = e.filename.split("_")
     e.artefactGroup = fileNameParts[0].trim()
-    e.artefactType = ['private','public'].contains(e.artefactGroup) ? 'outputFile' : 'inputFiles'
+    //e.artefactType = ['private','public'].contains(e.artefactGroup) ? 'outputFile' : 'inputFiles'
+    String lastPart = fileNameParts[fileNameParts.size()-1] 
+    String[] lastPartSplit = lastPart.split("[.]") as String[]
+    //println "fileNameParts=$fileNameParts lastPart=$lastPart lastPartSplit=$lastPartSplit"
+    e.artefactType = lastPartSplit[0] == 'min' ? 'outputFile' : 'inputFiles'
     e.artefactTitel = artefactTypes[e.artefactType]
 }
 
-def createResultStructureForAsset(def result, def recordMap) {
-    if (! result[recordMap.assetVertical]) {
-        result[recordMap.assetVertical] = [:] as TreeMap
+def createResultStructureForAsset(def resultMap, def recordMap) {
+    if (! resultMap[recordMap.assetVertical]) {
+        resultMap[recordMap.assetVertical] = [:] as TreeMap
     }
-    if (! result[recordMap.assetVertical][recordMap.assetType]) {
-        result[recordMap.assetVertical][recordMap.assetType] = [:] as TreeMap
+    if (! resultMap[recordMap.assetVertical][recordMap.assetType]) {
+        resultMap[recordMap.assetVertical][recordMap.assetType] = [:] as TreeMap
     }
-    if (! result[recordMap.assetVertical][recordMap.assetType][recordMap.assetVersion]) {
-        result[recordMap.assetVertical][recordMap.assetType][recordMap.assetVersion] = [artefacts:[:] as TreeMap]
+    if (! resultMap[recordMap.assetVertical][recordMap.assetType][recordMap.assetVersion]) {
+        resultMap[recordMap.assetVertical][recordMap.assetType][recordMap.assetVersion] = [artefacts:[:] as TreeMap]
     }
-    def resultNode = result[recordMap.assetVertical][recordMap.assetType][recordMap.assetVersion]
+    def resultNode = resultMap[recordMap.assetVertical][recordMap.assetType][recordMap.assetVersion]
     return resultNode
 }
 
@@ -121,6 +138,7 @@ def createResultEntry(def recordMap) {
     resultEntry.filename = recordMap.filename
     resultEntry.metrics = [:]
     resultEntry.assetVertical = recordMap.assetVertical
+    resultEntry.assetCategory = recordMap.filename.split('_')[0]
     return resultEntry
 }
 
@@ -128,7 +146,10 @@ def addMetric(def node, def recordMap) {
     node.metrics[recordMap.metric.trim()] = recordMap.count
 }
 
-def createHtmlReport(def resultFile, def result, def assetArtefact, def reportName) {
+def createHtmlReport(def resultFile, def result, def reportName) {
+    def assetArtefact = result["assetArchive"]
+    def environment = result.environment
+    def resultMap = result["assets"]
     def writer = new FileWriter(reportName)
     writer.println("<!DOCTYPE html>")
     def html   = new groovy.xml.MarkupBuilder(writer)
@@ -152,7 +173,7 @@ def createHtmlReport(def resultFile, def result, def assetArtefact, def reportNa
                         }
                     }
                     ul(class:"nav navbar-nav") {
-                        result.sort {a,b -> 
+                        resultMap.sort {a,b -> 
                                 a.key == "all" ? -1 : a.key<=>b.key
                             }.each() { assetVertical, resultVerticalNode ->
                             li(class:"dropdown") {
@@ -170,8 +191,9 @@ def createHtmlReport(def resultFile, def result, def assetArtefact, def reportNa
             }
             div(class:"container",style:"margin-top:50px;") {
                 h1 "Asset Metrics Report for ${assetArtefact}.tar"
+                span "Environment:${environment}"
                 br()
-                result.sort {a,b -> 
+                resultMap.sort {a,b -> 
                         a.key == "all" ? -1 : a.key<=>b.key
                     }.each() { assetVertical, resultVerticalNode ->
                         div(class:"container") {
@@ -306,11 +328,54 @@ def copyStaticArtefacts(String fromDir, String toDir) {
     }
 }
 
-def createJsonOutput(def resultFileName, def result, def assetArtefact, def jsonOutputFileName) {
+def createJsonOutput(def resultFileName, def result, def jsonOutputFileName) {
     new File(jsonOutputFileName).withWriter { writer ->
         String jsonString = JsonOutput.toJson(result)
         String prettyJsonString = JsonOutput.prettyPrint(jsonString)
         writer.write(prettyJsonString)
     }
     return jsonOutputFileName
+}
+
+def sendMetrics2Graphite(def result) {
+    def environment = result.environment
+    def assetArtefact = result.assetArchive
+    long timestamp = result.timestamp
+    def resultMap = result.assets
+    def graphite = connectToGraphite()
+    resultMap.each() { assetVertical, resultVerticalNode ->
+        // assetVertical: all (public) or aftersales | global-pattern | global-resources | order | ... (private)
+        resultVerticalNode.each() { assetType, resultTypeNode ->
+            // assetType: js|css
+            resultTypeNode.each() { assetVersion, resultVersionNode ->
+                // assetVersion: 50f1d1150badf3d1 | ...
+                resultVersionNode.artefacts["1. output artefact"].each() { outputFileName, outputFileNameNode ->
+                    // outputFileName: private_aftersales_non-critical_min.js | ... 
+                    String assetName = outputFileName.replace('.','_')
+                    String assetCategory = outputFileNameNode.assetCategory
+                    outputFileNameNode.metrics.each() { metricName, metricValue ->
+                        graphite.send("verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.${metricName}", metricValue, timestamp)
+                    }
+                    def inputFileMap = resultVersionNode.artefacts["2. input files"] ?: [:]
+                    println """
+                    graphite.send(
+                        "verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.inputFiles.count", 
+                        "${inputFileMap.size()}",
+                        $timestamp)
+                    """
+                    graphite.send(
+                        "verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.inputFiles.count", 
+                        "${inputFileMap.size()}",
+                        timestamp)
+                }
+            }
+        }
+    }
+}
+
+def connectToGraphite() {
+    Graphite graphite = new Graphite("carbon-relay.otto.easynet.de", 2003)
+//    Graphite graphite = new Graphite("localhost", 2003)
+    graphite.connect()
+    return graphite
 }
