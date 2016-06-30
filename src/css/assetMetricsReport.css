@@ -13,3 +13,7 @@ td, th.alignRight, td.alignRight {
 a.navbar-brand {
 	padding: 2px 15px;
 }
+
+.navbar .navbar-nav>li>a {
+	padding: 15px 10px 15px 10px;
+}

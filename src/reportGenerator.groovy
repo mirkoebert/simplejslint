@@ -357,12 +357,6 @@ def sendMetrics2Graphite(def result) {
                         graphite.send("verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.${metricName}", metricValue, timestamp)
                     }
                     def inputFileMap = resultVersionNode.artefacts["2. input files"] ?: [:]
-                    println """
-                    graphite.send(
-                        "verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.inputFiles.count", 
-                        "${inputFileMap.size()}",
-                        $timestamp)
-                    """
                     graphite.send(
                         "verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.inputFiles.count", 
                         "${inputFileMap.size()}",
