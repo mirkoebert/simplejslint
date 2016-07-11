@@ -14,6 +14,32 @@ a.navbar-brand {
 	padding: 2px 15px;
 }
 
-.navbar .navbar-nav>li>a {
+.navbar .navbar-nav>li>a, .navbar .navbar-header span {
 	padding: 15px 10px 15px 10px;
+}
+
+.navbar .navbar-header span {
+	color: #777;
+}
+
+@media (min-width: 1400px) {
+	#metricsReport .container {
+    	width: 1370px;
+    }
+}
+
+@media (min-width: 1300px) {
+	#metricsReport .container {
+    	width: 1370px;
+    }
+}
+
+@media (min-width: 1200px) {
+	#metricsReport .container {
+    	width: 1370px;
+    }
+}
+
+#metricsReport {
+	width: 1370px;
 }

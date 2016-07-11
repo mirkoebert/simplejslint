@@ -147,7 +147,7 @@ def addMetric(def node, def recordMap) {
 }
 
 def createHtmlReport(def resultFile, def result, def reportName) {
-    def assetArtefact = result["assetArchive"]
+    def assetArtefact = result["assetArchive"].split("/").last()
     def environment = result.environment
     def resultMap = result["assets"]
     def writer = new FileWriter(reportName)
@@ -171,6 +171,7 @@ def createHtmlReport(def resultFile, def result, def reportName) {
                         a(class:"navbar-brand", href:"#") {
                             img(src:"./images/scale_performance.png", height:"46")
                         }
+                        span(class:"nav navbar-nav", "${environment} : ${assetArtefact}")
                     }
                     ul(class:"nav navbar-nav") {
                         resultMap.sort {a,b -> 
@@ -189,7 +190,7 @@ def createHtmlReport(def resultFile, def result, def reportName) {
                     }
                 }
             }
-            div(class:"container",style:"margin-top:50px;") {
+            div(id:"metricsReport", class:"container",style:"margin-top:50px;") {
                 h1 "Asset Metrics Report for ${assetArtefact}.tar"
                 span "Environment:${environment}"
                 br()
