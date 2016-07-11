@@ -214,7 +214,9 @@ def createHtmlReport(def resultFile, def result, def reportName) {
                                 }
                             }
                             div(class:"tab-content") {
-                                resultTypeNode.eachWithIndex { assetVersion, resultVersionNode, index ->
+                                resultTypeNode.sort{ a,b ->
+                                        a.value.outputArtefactName <=> b.value.outputArtefactName 
+                                    }.eachWithIndex { assetVersion, resultVersionNode, index ->
                                     div(id:"${assetVertical}_${assetVersion}", class:(index==0 ? "tab-pane fade in active" : "tab-pane fade")) {
                                         resultVersionNode.artefacts.each() { artefactTitle, artefactsNode ->
                                             if (artefactTitle != "metrics") {
