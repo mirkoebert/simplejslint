@@ -12,6 +12,7 @@ fi
 
 dir=$1
 outputFile=$2
+minifiedFile=".tmp.min"
 
 countLinesOfFile(){
     inputFile=$1
@@ -21,7 +22,8 @@ countLinesOfFile(){
     inputBasePath=${inputFullPath%$inputFilename}
     count=`cat ${inputFile} | wc -l | tr -d '[[:space:]]'`
     d=`date`
-    echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,"loc",\"Count Lines of Code\"" | tee -a $outputFile
+    echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,"loc",\"Count Lines of Code\"" >> $outputFile
+    echo -n "."
 }
 
 countBytesOfFile(){
@@ -32,7 +34,8 @@ countBytesOfFile(){
     inputBasePath=${inputFullPath%$inputFilename}
     count=`cat ${inputFile} | wc -c | tr -d '[[:space:]]'`
     d=`date`
-    echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,"bytes",\"Count Bytes of Code\"" | tee -a $outputFile
+    echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,"bytes",\"Count Bytes of Code\"" >> $outputFile
+    echo -n "."
 }
 
 countBytesOfMinifiedFile(){
@@ -43,28 +46,19 @@ countBytesOfMinifiedFile(){
     inputBasePath=${inputFullPath%$inputFilename}
     d=`date`
     if [ $inputExtension == "js" ]; then
-        count=`./node_modules/.bin/uglifyjs --mangle --compress -- ${inputFile} | wc -c | tr -d '[[:space:]]'`
-        echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,"minBytes",\"Minified Code Size\"" | tee -a $outputFile
+        ./node_modules/.bin/uglifyjs --mangle --compress -- ${inputFile} >> $minifiedFile 2>/dev/null
     elif [ $inputExtension == "css" ]; then
-        count=`./node_modules/.bin/cleancss ${inputFile} | wc -c | tr -d '[[:space:]]'`
-        echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,"minBytes",\"Minified Code Size\"" | tee -a $outputFile
+        ./node_modules/.bin/cleancss ${inputFile} >> $minifiedFile
     fi
+    count=`cat $minifiedFile | wc -c | tr -d '[[:space:]]'`
+    echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,"minBytes",\"Minified Code Size\"" >> $outputFile
+    echo -n "."
 }
 
 countBytesOfMinifiedGzipFile(){
-    inputFile=$1
-    inputFullPath="${inputFile}"
-    inputFilename=${inputFullPath##*/}
-    inputExtension=${inputFilename##*.}
-    inputBasePath=${inputFullPath%$inputFilename}
-    d=`date`
-    if [ $inputExtension == "js" ]; then
-        count=`./node_modules/.bin/uglifyjs --mangle --compress -- ${inputFile} | gzip -9 -c | wc -c | tr -d '[[:space:]]'`
-        echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,"minBytesGzip",\"Minified, gzipped Code Size\"" | tee -a $outputFile
-    elif [ $inputExtension == "css" ]; then
-        count=`./node_modules/.bin/cleancss ${inputFile} | gzip -9 -c | wc -c | tr -d '[[:space:]]'`
-        echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,"minBytesGzip",\"Minified, gzipped Code Size\"" | tee -a $outputFile
-    fi
+    count=`cat $minifiedFile | gzip -9 -c | wc -c | tr -d '[[:space:]]'`
+    echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,"minBytesGzip",\"Minified, gzipped Code Size\"" >> $outputFile
+    echo -n "."
 }
 
 shopt -s nullglob

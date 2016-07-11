@@ -26,8 +26,10 @@ analyzeOneFile() {
     inputFilename=${inputFullPath##*/}
     inputExtension=${inputFilename##*.}
     inputBasePath=${inputFullPath%$inputFilename}
-    echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$warnings,"cssWarnings",\"CSS Warnings Count\"" | tee -a $outputFile
-	echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$errors,"cssErrors",\"CSS Errors Count\"" | tee -a $outputFile
+    echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$warnings,"cssWarnings",\"CSS Warnings Count\"" >> $outputFile
+    echo -n "."
+	echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$errors,"cssErrors",\"CSS Errors Count\"" >> $outputFile
+    echo -n "."
 }
 
 if [ -d "$dir" ]; then

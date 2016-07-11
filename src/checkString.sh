@@ -37,7 +37,8 @@ analyzeOneFile() {
     inputFilename=${inputFullPath##*/}
     inputExtension=${inputFilename##*.}
     inputBasePath=${inputFullPath%$inputFilename}
-    echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,$metric,$description"  | tee -a $outputFile
+    echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,$metric,$description"  >> $outputFile
+    echo -n "."
 }
 
 if [ -d "$dir" ]; then

@@ -14,6 +14,9 @@ fi
 inputFile=$1
 outputFile=$2
 
+echo ""
+echo -n "${inputFile}: "
+
 src/countBytes.sh  $inputFile $outputFile
 
 if [[ $inputFile == *.js ]]; then
