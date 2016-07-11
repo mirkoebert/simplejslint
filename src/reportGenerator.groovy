@@ -229,6 +229,8 @@ def createHtmlReport(def resultFile, def result, def reportName) {
                                                                 mkp.yieldUnescaped("Lines&nbsp;of Code")
                                                             }
                                                             th("Size")
+                                                            th("Min size")
+                                                            th("Min gzip size")
                                                             if (assetType == "js") {
                                                                 th("Count eval")
                                                                 th("Count new")
@@ -259,31 +261,34 @@ def createHtmlReport(def resultFile, def result, def reportName) {
                                                     tbody {
                                                         artefactsNode.each() { outputFileName, outputFileNameNode ->
                                                             tr {
-                                                                td('class':'alignLeft','data-toggle':'tooltip',title:"${outputFileName}","${outputFileName.size() > 43 ? outputFileName.take(40)+'...' : outputFileName}")
-                                                                td("${sprintf('%,d',outputFileNameNode.metrics.loc as Integer)}")
-                                                                td("${sprintf('%,d',outputFileNameNode.metrics.bytes as Integer)}")
+                                                                //println outputFileName
+                                                                td('class':'alignLeft','data-toggle':'tooltip',title:"${outputFileName}","${outputFileName.split('[.]')?.first()?.size() > 35 ? outputFileName.take(30)+'...' : outputFileName.split('[.]')?.first()}")
+                                                                td("${sprintf('%,d',outputFileNameNode.metrics?.loc as Integer)}")
+                                                                td("${sprintf('%,d',outputFileNameNode.metrics?.bytes as Integer)}")
+                                                                td("${sprintf('%,d',outputFileNameNode.metrics?.minBytes as Integer)}")
+                                                                td("${sprintf('%,d',outputFileNameNode.metrics?.minBytesGzip as Integer)}")
                                                                 if (assetType == "js") {
-                                                                    td("${outputFileNameNode.metrics.evalCount}")
-                                                                    td("${outputFileNameNode.metrics.newCount}")
-                                                                    td("${outputFileNameNode.metrics.withCount}")
-                                                                    td("${outputFileNameNode.metrics.jQueryLocatorCalls}")
-                                                                    td("${outputFileNameNode.metrics.jQueryFunctionCalls}")
-                                                                    td("${outputFileNameNode.metrics.documentWriteCount}")
-                                                                    td("${outputFileNameNode.metrics.forInCount}")
-                                                                    td("${outputFileNameNode.metrics.returnNullCount}")
+                                                                    td("${outputFileNameNode.metrics?.evalCount}")
+                                                                    td("${outputFileNameNode.metrics?.newCount}")
+                                                                    td("${outputFileNameNode.metrics?.withCount}")
+                                                                    td("${outputFileNameNode.metrics?.jQueryLocatorCalls}")
+                                                                    td("${outputFileNameNode.metrics?.jQueryFunctionCalls}")
+                                                                    td("${outputFileNameNode.metrics?.documentWriteCount}")
+                                                                    td("${outputFileNameNode.metrics?.forInCount}")
+                                                                    td("${outputFileNameNode.metrics?.returnNullCount}")
                                                                 }
                                                                 if (assetType == "css") {
                                                                     //td("${outputFileNameNode.metrics}")
-                                                                    td("${outputFileNameNode.metrics.cssWarnings}")
-                                                                    td("${outputFileNameNode.metrics.cssErrors}")
-                                                                    td("${outputFileNameNode.metrics.mediaQueryCount}")
-                                                                    td("${outputFileNameNode.metrics.breakpointMCount}")
-                                                                    td("${outputFileNameNode.metrics.breakpointLCount}")
-                                                                    td("${outputFileNameNode.metrics.breakpointXLCount}")
-                                                                    td("${outputFileNameNode.metrics.mediaQueryBytes}")
-                                                                    td("${outputFileNameNode.metrics.breakpointMBytes}")
-                                                                    td("${outputFileNameNode.metrics.breakpointLBytes}")
-                                                                    td("${outputFileNameNode.metrics.breakpointXLBytes}")
+                                                                    td("${outputFileNameNode.metrics?.cssWarnings}")
+                                                                    td("${outputFileNameNode.metrics?.cssErrors}")
+                                                                    td("${outputFileNameNode.metrics?.mediaQueryCount}")
+                                                                    td("${outputFileNameNode.metrics?.breakpointMCount}")
+                                                                    td("${outputFileNameNode.metrics?.breakpointLCount}")
+                                                                    td("${outputFileNameNode.metrics?.breakpointXLCount}")
+                                                                    td("${sprintf('%,d',outputFileNameNode.metrics?.mediaQueryBytes as Integer)}")
+                                                                    td("${sprintf('%,d',outputFileNameNode.metrics?.breakpointMBytes as Integer)}")
+                                                                    td("${sprintf('%,d',outputFileNameNode.metrics?.breakpointLBytes as Integer)}")
+                                                                    td("${sprintf('%,d',outputFileNameNode.metrics?.breakpointXLBytes as Integer)}")
                                                                 }
                                                             }
                                                         }
