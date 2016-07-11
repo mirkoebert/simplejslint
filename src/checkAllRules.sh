@@ -14,7 +14,6 @@ fi
 inputFile=$1
 outputFile=$2
 
-echo ""
 echo -n "${inputFile}: "
 
 src/countBytes.sh  $inputFile $outputFile
@@ -43,3 +42,4 @@ if [[ $inputFile == *.css ]]; then
 	src/countMultiLineRegexBytes.sh $inputFile mediaQueryBytes '@media\s+[^{}]*{([^{}]*{[^{}]*})*[^{}]*}' "Media Query bytes" $outputFile
 fi
 
+echo ""
