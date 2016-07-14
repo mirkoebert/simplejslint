@@ -99,13 +99,21 @@ def computeFileNameElements(def e) {
         "outputFile":"1. output artefact",
         "inputFiles":"2. input files"
     ]
-    String[] fileNameParts = e.filename.split("_")
+    String fileNameExtension = ""
+    String fileNameBase = e.filename
+    if (e.filename.contains(".")) {
+        def parts = e.filename.split("[.]") as List
+        fileNameExtension = parts.last()
+        parts.pop()
+        fileNameBase = parts.join(".")
+    }
+    //println "filename=${e.filename} : fileNameBase=$fileNameBase , fileNameExtension=$fileNameExtension"
+    e.shortenedFileName = fileNameBase.size() > 35 ? fileNameBase.take(30)+'...' : fileNameBase
+    String[] fileNameParts = fileNameBase.split("_")
     e.artefactGroup = fileNameParts[0].trim()
     //e.artefactType = ['private','public'].contains(e.artefactGroup) ? 'outputFile' : 'inputFiles'
-    String lastPart = fileNameParts[fileNameParts.size()-1] 
-    String[] lastPartSplit = lastPart.split("[.]") as String[]
-    //println "fileNameParts=$fileNameParts lastPart=$lastPart lastPartSplit=$lastPartSplit"
-    e.artefactType = lastPartSplit[0] == 'min' ? 'outputFile' : 'inputFiles'
+    String lastPart = fileNameParts.last()
+    e.artefactType = lastPart == 'min' ? 'outputFile' : 'inputFiles'
     e.artefactTitel = artefactTypes[e.artefactType]
 }
 
@@ -136,6 +144,7 @@ def createResultEntry(def recordMap) {
     resultEntry = [:]
     resultEntry.asset = recordMap.asset
     resultEntry.filename = recordMap.filename
+    resultEntry.shortenedFileName = recordMap.shortenedFileName
     resultEntry.metrics = [:]
     resultEntry.assetVertical = recordMap.assetVertical
     resultEntry.assetCategory = recordMap.filename.split('_')[0]
@@ -262,7 +271,7 @@ def createHtmlReport(def resultFile, def result, def reportName) {
                                                         artefactsNode.each() { outputFileName, outputFileNameNode ->
                                                             tr {
                                                                 //println outputFileName
-                                                                td('class':'alignLeft','data-toggle':'tooltip',title:"${outputFileName}","${outputFileName.split('[.]')?.first()?.size() > 35 ? outputFileName.take(30)+'...' : outputFileName.split('[.]')?.first()}")
+                                                                td('class':'alignLeft','data-toggle':'tooltip',title:"${outputFileName}","${outputFileNameNode.shortenedFileName}")
                                                                 td("${sprintf('%,d',outputFileNameNode.metrics?.loc as Integer)}")
                                                                 td("${sprintf('%,d',outputFileNameNode.metrics?.bytes as Integer)}")
                                                                 td("${sprintf('%,d',outputFileNameNode.metrics?.minBytes as Integer)}")
