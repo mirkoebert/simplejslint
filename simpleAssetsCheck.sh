@@ -1,22 +1,27 @@
 #!/usr/bin/env bash
 
+type="-all"
 dir="."
 outputFile="result.csv"
 
 if [[ $# -ge 1 ]]; then
-	dir=$1
+	type=$1
 fi
 
 if [[ $# -ge 2 ]]; then
-	outputFile=$2
+	dir=$2
 fi
 
-if [[ -f $outputFile ]]; then 
-	rm $outputFile
+if [[ $# -ge 3 ]]; then
+	outputFile=$3
 fi
+
+# if [[ -f $outputFile ]]; then 
+# 	rm $outputFile
+# fi
 
 echo "timestamp,asset,basePath,filename,extension,count,metric,description" > $outputFile
 
-src/checkAllFiles.sh $dir $outputFile
+src/checkAllFiles.sh $type $dir $outputFile
 
 
