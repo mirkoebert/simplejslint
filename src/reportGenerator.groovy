@@ -1,51 +1,85 @@
 @Grab('org.apache.commons:commons-csv:1.2')
+@Grab('commons-cli:commons-cli:1.3.1')
 @Grab("commons-io:commons-io:2.4")
 @Grab('io.dropwizard.metrics:metrics-core:3.1.0')
 @Grab('io.dropwizard.metrics:metrics-graphite:3.1.0')
+
+import org.apache.commons.cli.Option
 import org.apache.commons.csv.CSVParser
 import static org.apache.commons.csv.CSVFormat.*
-import java.nio.file.Paths
 import org.apache.commons.io.FileUtils
+
+import java.nio.file.Paths
 import groovy.json.JsonOutput
 import com.codahale.metrics.graphite.Graphite
 
 // processing parameters
-def resultFileName = args.length > 0 ? args[0] : 'build/resources-3.5.3082_results.csv'
-String assetArtefact = resultFileName - "_results.csv"
-String htmlReportFileName = args.length > 1 ? args[1] : "${assetArtefact}_report.html"
-String jsonOutputFileName = htmlReportFileName - "html" + "json"
-String environment = args.length > 2 ? args[2] : "unknown"
-long timestamp = args.length > 3 ? args[3] : ((long) (new Date()).time / 1000)
+def cli = new CliBuilder(
+    usage: 'groovy reportGenerator [options] -- <inputFiles>',
+    header: '\nAvailable options (use -h for help):\n',
+    footer: '\nUse with care'
+)
+cli.with {
+    a(longOpt:'assetArtefact', 'asset artefact name (resources-3.5.3082)', args:1, optionalArg:true, required:false)
+    e(longOpt:'environment', 'assets target environment name', args:1, required:false)
+    t(longOpt:'timestamp', 'asset artefact timestamp', args:1, required:false)
+    r(longOpt:'report', 'html report file name', args:1, optionalArg:true, required:false)
+    j(longOpt:'json', 'json output file name', args:1, optionalArg:true, required:false)
+    m(longOpt:'metrics', 'generate graphite metrics', args:0, required:false)
+    _(longOpt:'input', 'input csv files with asset metrics', args:Option.UNLIMITED_VALUES, required:true)
+}
+def opt = cli.parse(args)
+if (!opt) return
+if (opt.h) cli.usage()
+
+def resultFileNames = opt.inputs ? opt.inputs - "--" : ['build/resources-3.5.3082_results.csv']
+String assetArtefact = opt.a ?: resultFileName[0] - "_results.csv"
+String htmlReportFileName = opt.r ?: "${assetArtefact}_report.html"
+String jsonOutputFileName = opt.j ?: htmlReportFileName - "html" + "json"
+String environment = opt.e ?: "unknown"
+long timestamp = opt.t ?: ((long) (new Date()).time / 1000)
+println "resultFileNames = ${resultFileNames}"
+println "assetArtefact = ${assetArtefact}"
+println "htmlReportFileName = ${htmlReportFileName}"
+println "jsonOutputFileName = ${jsonOutputFileName}"
+println "environment = ${environment}"
 println "timestamp=$timestamp"
 
 // processing resultFile
-def resultMap = retrieveResult(resultFileName, assetArtefact, environment, timestamp)
-println "result file ${resultFileName} processed"
+def resultMap = ["environment":environment,"assetArchive":assetArtefact, "timestamp":timestamp, "assets":[:]]
+resultFileNames.each() { resultFileName ->
+    println "next result file : ${resultFileName}"
+    resultMap = retrieveResult(resultFileName, assetArtefact, environment, timestamp, resultMap)
+    println "result file ${resultFileName} processed"
+}
 
-// generating html report
-println "start generating html report"
-def htmlReportFile = createHtmlReport(resultFileName, resultMap, htmlReportFileName)
-println "report ${htmlReportFile} generated"
+if (opt.report) {
+    // generating html report
+    println "start generating html report"
+    def htmlReportFile = createHtmlReport(resultMap, htmlReportFileName)
+    println "report ${htmlReportFile} generated"
 
-// copying static artefacts
-def buildDir = extractBaseDirFromFilename(htmlReportFileName)
-println "copy static artefacts from 'src' to '${buildDir}'"
-copyStaticArtefacts("src", buildDir)
-println "static artefacts copied"
+    // copying static artefacts
+    def buildDir = extractBaseDirFromFilename(htmlReportFileName)
+    println "copy static artefacts from 'src' to '${buildDir}'"
+    copyStaticArtefacts("src", buildDir)
+    println "static artefacts copied"
+}
 
-// generate json output
-println "start generating json output in ${jsonOutputFileName}"
-def jsonOutputFile = createJsonOutput(resultFileName, resultMap, jsonOutputFileName)
-println "json output ${jsonOutputFile} generated"
+if (opt.json) {
+    // generate json output
+    println "start generating json output in ${jsonOutputFileName}"
+    def jsonOutputFile = createJsonOutput(resultMap, jsonOutputFileName)
+    println "json output ${jsonOutputFile} generated"
+}
 
-// send metrics to graphite
-println "start pushing metrics to graphite"
-sendMetrics2Graphite(resultMap)
-println "sending graphite metrics completed"
+if (opt.metrics) {
+    // send metrics to graphite
+    sendMetrics2Graphite(resultMap)
+    println "sending graphite metrics completed"
+}
 
-def retrieveResult(String resultFile, String assetArtefact, String environment, long timestamp) {
-    def result = ["environment":environment,"assetArchive":assetArtefact, "timestamp":timestamp, "assets":[:]]
-
+def retrieveResult(String resultFile, String assetArtefact, String environment, long timestamp, Map result) {
     Paths.get(resultFile).withReader { reader ->
         CSVParser csv = new CSVParser(reader, DEFAULT.withHeader())
 
@@ -155,7 +189,7 @@ def addMetric(def node, def recordMap) {
     node.metrics[recordMap.metric.trim()] = recordMap.count
 }
 
-def createHtmlReport(def resultFile, def result, def reportName) {
+def createHtmlReport(def result, def reportName) {
     def assetArtefact = result["assetArchive"].split("/").last()
     def environment = result.environment
     def resultMap = result["assets"]
@@ -345,7 +379,7 @@ def copyStaticArtefacts(String fromDir, String toDir) {
     }
 }
 
-def createJsonOutput(def resultFileName, def result, def jsonOutputFileName) {
+def createJsonOutput(def result, def jsonOutputFileName) {
     new File(jsonOutputFileName).withWriter { writer ->
         String jsonString = JsonOutput.toJson(result)
         String prettyJsonString = JsonOutput.prettyPrint(jsonString)
@@ -359,7 +393,9 @@ def sendMetrics2Graphite(def result) {
     def assetArtefact = result.assetArchive
     long timestamp = result.timestamp
     def resultMap = result.assets
+    println "connecting to graphite"
     def graphite = connectToGraphite()
+    println "start pushing metrics to graphite"
     resultMap.each() { assetVertical, resultVerticalNode ->
         // assetVertical: all (public) or aftersales | global-pattern | global-resources | order | ... (private)
         resultVerticalNode.each() { assetType, resultTypeNode ->
