@@ -46,9 +46,9 @@ countBytesOfMinifiedFile(){
     inputBasePath=${inputFullPath%$inputFilename}
     d=`date`
     if [ $inputExtension == "js" ]; then
-        ./node_modules/.bin/uglifyjs --mangle --compress -- ${inputFile} >> $minifiedFile 2>/dev/null
+        ./node_modules/.bin/uglifyjs --mangle --compress -- ${inputFile} > $minifiedFile 2>/dev/null
     elif [ $inputExtension == "css" ]; then
-        ./node_modules/.bin/cleancss ${inputFile} >> $minifiedFile
+        ./node_modules/.bin/cleancss ${inputFile} > $minifiedFile
     fi
     count=`cat $minifiedFile | wc -c | tr -d '[[:space:]]'`
     echo "$d,$inputFile,$inputBasePath,$inputFilename,$inputExtension,$count,"minBytes",\"Minified Code Size\"" >> $outputFile
