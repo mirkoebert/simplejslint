@@ -152,16 +152,21 @@ def computeFileNameElements(def e) {
 }
 
 def createResultStructureForAsset(def resultMap, def recordMap) {
-    if (! resultMap[recordMap.assetVertical]) {
-        resultMap[recordMap.assetVertical] = [:] as TreeMap
+    String vertical = recordMap.assetVertical
+    if (! resultMap[vertical]) {
+        resultMap[vertical] = [
+            "assetVertical": vertical,
+            "shortenedVerticalName": vertical.size() > 15 ? vertical.take(12)+'...' : vertical,
+            "assets" : [:] as TreeMap
+        ]
     }
-    if (! resultMap[recordMap.assetVertical][recordMap.assetType]) {
-        resultMap[recordMap.assetVertical][recordMap.assetType] = [:] as TreeMap
+    if (! resultMap[vertical]["assets"][recordMap.assetType]) {
+        resultMap[vertical]["assets"][recordMap.assetType] = [:] as TreeMap
     }
-    if (! resultMap[recordMap.assetVertical][recordMap.assetType][recordMap.assetVersion]) {
-        resultMap[recordMap.assetVertical][recordMap.assetType][recordMap.assetVersion] = [artefacts:[:] as TreeMap]
+    if (! resultMap[vertical]["assets"][recordMap.assetType][recordMap.assetVersion]) {
+        resultMap[vertical]["assets"][recordMap.assetType][recordMap.assetVersion] = [artefacts:[:] as TreeMap]
     }
-    def resultNode = resultMap[recordMap.assetVertical][recordMap.assetType][recordMap.assetVersion]
+    def resultNode = resultMap[recordMap.assetVertical]["assets"][recordMap.assetType][recordMap.assetVersion]
     return resultNode
 }
 
@@ -221,7 +226,7 @@ def createHtmlReport(def result, def reportName) {
                                 a.key == "all" ? -1 : a.key<=>b.key
                             }.each() { assetVertical, resultVerticalNode ->
                             li(class:"dropdown") {
-                                a(class:"dropdown-toggle", "data-toggle":"dropdown", href:"#", "${assetVertical == 'all' ? 'public' : assetVertical}") {
+                                a(class:"dropdown-toggle", "data-toggle":"dropdown", "data-hover":"tooltip", title:"${assetVertical}", href:"#", "${assetVertical == 'all' ? 'public' : resultVerticalNode.shortenedVerticalName}") {
                                     span(class:"caret")
                                 } 
                                 ul(class:"dropdown-menu") {
@@ -242,7 +247,7 @@ def createHtmlReport(def result, def reportName) {
                     }.each() { assetVertical, resultVerticalNode ->
                         div(class:"container") {
                         h2(id:"${assetVertical}_css", "${assetVertical == 'all' ? 'public all' : 'private ' + assetVertical}")
-                        resultVerticalNode.each() { assetType, resultTypeNode ->
+                        resultVerticalNode.assets.each() { assetType, resultTypeNode ->
                             if (assetType == "js") {
                                 div(id:"${assetVertical}_js", style:"padding-top: 50px;")
                             }
@@ -398,7 +403,7 @@ def sendMetrics2Graphite(def result) {
     println "start pushing metrics to graphite"
     resultMap.each() { assetVertical, resultVerticalNode ->
         // assetVertical: all (public) or aftersales | global-pattern | global-resources | order | ... (private)
-        resultVerticalNode.each() { assetType, resultTypeNode ->
+        resultVerticalNode.assets.each() { assetType, resultTypeNode ->
             // assetType: js|css
             resultTypeNode.each() { assetVersion, resultVersionNode ->
                 // assetVersion: 50f1d1150badf3d1 | ...
