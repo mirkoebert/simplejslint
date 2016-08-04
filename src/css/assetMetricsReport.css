@@ -14,8 +14,12 @@ a.navbar-brand {
 	padding: 2px 15px;
 }
 
-.navbar .navbar-nav>li>a, .navbar .navbar-header span {
+.navbar .navbar-nav>li>a {
 	padding: 15px 10px 15px 10px;
+}
+
+.navbar .navbar-header span {
+	padding: 5px 10px 5px 10px;
 }
 
 .navbar .navbar-header span {

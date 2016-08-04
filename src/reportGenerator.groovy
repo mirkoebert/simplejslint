@@ -219,7 +219,10 @@ def createHtmlReport(def result, def reportName) {
                         a(class:"navbar-brand", href:"#") {
                             img(src:"./images/scale_performance.png", height:"46")
                         }
-                        span(class:"nav navbar-nav", "${environment} : ${assetArtefact}")
+                        span(class:"nav navbar-nav") {
+                            div(class:"nav","${environment}")
+                            div(class:"nav","${assetArtefact}")
+                        } 
                     }
                     ul(class:"nav navbar-nav") {
                         resultMap.sort {a,b -> 
