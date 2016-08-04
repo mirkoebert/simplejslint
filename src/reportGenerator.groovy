@@ -238,7 +238,8 @@ def createHtmlReport(def result, def reportName) {
                     }
                 }
             }
-            div(id:"metricsReport", class:"container",style:"margin-top:50px;") {
+            div(id:"metricsReport", class:"container") {
+                br(style:"margin-top:50px;")
                 h1 "Asset Metrics Report for ${assetArtefact}.tar"
                 span "Environment:${environment}"
                 br()
