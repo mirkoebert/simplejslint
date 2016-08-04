@@ -156,7 +156,7 @@ def createResultStructureForAsset(def resultMap, def recordMap) {
     if (! resultMap[vertical]) {
         resultMap[vertical] = [
             "assetVertical": vertical,
-            "shortenedVerticalName": vertical.size() > 15 ? vertical.take(12)+'...' : vertical,
+            "shortenedVerticalName": vertical.size() > 12 ? vertical.take(10)+'..' : vertical,
             "assets" : [:] as TreeMap
         ]
     }
