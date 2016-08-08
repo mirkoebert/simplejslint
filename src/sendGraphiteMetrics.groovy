@@ -22,7 +22,7 @@ if (!opt) return
 if (opt.h) cli.usage()
 
 def metricsInputFileNames = opt.ms - "--"
-String graphiteServerName = opt.s ?: "carbon-relay.otto.easynet.de"
+String graphiteServerName = opt.s ?: "localhost"
 int graphiteServerPort = opt.p ?: 2003
 long timestamp = opt.t ?: ((long) (new Date()).time / 1000)
 println "metricsInputFileNames = ${metricsInputFileNames}"
