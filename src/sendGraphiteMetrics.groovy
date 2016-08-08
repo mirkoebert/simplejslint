@@ -15,39 +15,42 @@ cli.with {
     s(longOpt:'server', 'Graphite Server name', args:1, required:false)
     p(longOpt:'port', 'Graphite Server port', args:1, required:false)
     t(longOpt:'timestamp', 'metrics reporting timestamp', args:1, required:false)
-    m(longOpt:'metrics', 'graphite metrics file', args:1, required:true)
+    m(longOpt:'metrics', 'graphite metrics files', args:Option.UNLIMITED_VALUES, required:true)
 }
 def opt = cli.parse(args)
 if (!opt) return
 if (opt.h) cli.usage()
 
-String metricsInputFileName = opt.m 
+def metricsInputFileNames = opt.ms - "--"
 String graphiteServerName = opt.s ?: "carbon-relay.otto.easynet.de"
 int graphiteServerPort = opt.p ?: 2003
 long timestamp = opt.t ?: ((long) (new Date()).time / 1000)
-println "metricsInputFileName = ${metricsInputFileName}"
+println "metricsInputFileNames = ${metricsInputFileNames}"
 println "graphiteServerName = ${graphiteServerName}"
 println "graphiteServerPort = ${graphiteServerPort}"
 println "timestamp=$timestamp"
 
-println "reading metrics input from ${metricsInputFileName}"
-String metricsInput = (new File(metricsInputFileName)).text
 println "connecting to graphite"
 def graphite = connectToGraphite(graphiteServerName, graphiteServerPort)
-println "start pushing metrics to graphite"
-int count = 0
-metricsInput.eachLine() { line ->
-    String[] lineParts = line.split(" ")
-    if (lineParts.size() < 2) {
-        // to short line ==> drop it
-        return
+metricsInputFileNames.each() { metricsInputFileName ->
+    println "reading metrics input from ${metricsInputFileName}"
+    String metricsInput = (new File(metricsInputFileName)).text
+    println "start pushing metrics to graphite"
+    int count = 0
+    metricsInput.eachLine() { line ->
+        String[] lineParts = line.split(" ")
+        if (lineParts.size() < 2) {
+            // to short line ==> drop it
+            return
+        }
+        String metric = lineParts[0]
+        String value = lineParts[1]
+        graphite.send(metric, value, timestamp)
+        count++
     }
-    String metric = lineParts[0]
-    String value = lineParts[1]
-    graphite.send(metric, value, timestamp)
-    count++
+    println "done pushing ${count} metrics to graphite"
 }
-println "done pushing ${count} metrics to graphite"
+println "sending graphite metrics finished"
 
 def connectToGraphite(String graphiteServerName, int graphiteServerPort) {
     Graphite graphite = new Graphite(graphiteServerName, graphiteServerPort)
