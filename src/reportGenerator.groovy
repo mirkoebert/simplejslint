@@ -1,8 +1,6 @@
 @Grab('org.apache.commons:commons-csv:1.2')
 @Grab('commons-cli:commons-cli:1.3.1')
 @Grab("commons-io:commons-io:2.4")
-@Grab('io.dropwizard.metrics:metrics-core:3.1.0')
-@Grab('io.dropwizard.metrics:metrics-graphite:3.1.0')
 
 import org.apache.commons.cli.Option
 import org.apache.commons.csv.CSVParser
@@ -11,11 +9,10 @@ import org.apache.commons.io.FileUtils
 
 import java.nio.file.Paths
 import groovy.json.JsonOutput
-import com.codahale.metrics.graphite.Graphite
 
 // processing parameters
 def cli = new CliBuilder(
-    usage: 'groovy reportGenerator [options] -- <inputFiles>',
+    usage: 'groovy reportGenerator [options] --input <inputFiles>',
     header: '\nAvailable options (use -h for help):\n',
     footer: '\nUse with care'
 )
@@ -25,8 +22,8 @@ cli.with {
     t(longOpt:'timestamp', 'asset artefact timestamp', args:1, required:false)
     r(longOpt:'report', 'html report file name', args:1, optionalArg:true, required:false)
     j(longOpt:'json', 'json output file name', args:1, optionalArg:true, required:false)
-    m(longOpt:'metrics', 'generate graphite metrics', args:0, required:false)
-    _(longOpt:'input', 'input csv files with asset metrics', args:Option.UNLIMITED_VALUES, required:true)
+    m(longOpt:'metrics', 'generate graphite metrics file', args:1, optionalArg:true, required:false)
+    i(longOpt:'input', 'input csv files with asset metrics', args:Option.UNLIMITED_VALUES, required:true)
 }
 def opt = cli.parse(args)
 if (!opt) return
@@ -36,12 +33,14 @@ def resultFileNames = opt.inputs ? opt.inputs - "--" : ['build/resources-3.5.308
 String assetArtefact = opt.a ?: resultFileName[0] - "_results.csv"
 String htmlReportFileName = opt.r ?: "${assetArtefact}_report.html"
 String jsonOutputFileName = opt.j ?: htmlReportFileName - "html" + "json"
+String metricsOutputFileName = opt.m ?: "${assetArtefact}_metrics.txt"
 String environment = opt.e ?: "unknown"
 long timestamp = opt.t ?: ((long) (new Date()).time / 1000)
 println "resultFileNames = ${resultFileNames}"
 println "assetArtefact = ${assetArtefact}"
 println "htmlReportFileName = ${htmlReportFileName}"
 println "jsonOutputFileName = ${jsonOutputFileName}"
+println "metricsOutputFileName = ${metricsOutputFileName}"
 println "environment = ${environment}"
 println "timestamp=$timestamp"
 
@@ -75,8 +74,9 @@ if (opt.json) {
 
 if (opt.metrics) {
     // send metrics to graphite
-    sendMetrics2Graphite(resultMap)
-    println "sending graphite metrics completed"
+    println "start writing metrics output to ${metricsOutputFileName}"
+    writeGraphiteMetrics(resultMap, metricsOutputFileName)
+    println "writing graphite metrics completed"
 }
 
 def retrieveResult(String resultFile, String assetArtefact, String environment, long timestamp, Map result) {
@@ -397,41 +397,30 @@ def createJsonOutput(def result, def jsonOutputFileName) {
     return jsonOutputFileName
 }
 
-def sendMetrics2Graphite(def result) {
+def writeGraphiteMetrics(def result, def metricsOutputFileName) {
     def environment = result.environment
     def assetArtefact = result.assetArchive
     long timestamp = result.timestamp
     def resultMap = result.assets
-    println "connecting to graphite"
-    def graphite = connectToGraphite()
-    println "start pushing metrics to graphite"
-    resultMap.each() { assetVertical, resultVerticalNode ->
-        // assetVertical: all (public) or aftersales | global-pattern | global-resources | order | ... (private)
-        resultVerticalNode.assets.each() { assetType, resultTypeNode ->
-            // assetType: js|css
-            resultTypeNode.each() { assetVersion, resultVersionNode ->
-                // assetVersion: 50f1d1150badf3d1 | ...
-                resultVersionNode.artefacts["1. output artefact"].each() { outputFileName, outputFileNameNode ->
-                    // outputFileName: private_aftersales_non-critical_min.js | ... 
-                    String assetName = outputFileName.replace('.','_')
-                    String assetCategory = outputFileNameNode.assetCategory
-                    outputFileNameNode.metrics.each() { metricName, metricValue ->
-                        graphite.send("verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.${metricName}", metricValue, timestamp)
+    new File(metricsOutputFileName).withWriter { writer ->
+        resultMap.each() { assetVertical, resultVerticalNode ->
+            // assetVertical: all (public) or aftersales | global-pattern | global-resources | order | ... (private)
+            resultVerticalNode.assets.each() { assetType, resultTypeNode ->
+                // assetType: js|css
+                resultTypeNode.each() { assetVersion, resultVersionNode ->
+                    // assetVersion: 50f1d1150badf3d1 | ...
+                    resultVersionNode.artefacts["1. output artefact"].each() { outputFileName, outputFileNameNode ->
+                        // outputFileName: private_aftersales_non-critical_min.js | ... 
+                        String assetName = outputFileName.replace('.','_')
+                        String assetCategory = outputFileNameNode.assetCategory
+                        outputFileNameNode.metrics.each() { metricName, metricValue ->
+                            writer.write("verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.${metricName} ${metricValue} \n")
+                        }
+                        def inputFileMap = resultVersionNode.artefacts["2. input files"] ?: [:]
+                        writer.write("verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.inputFilesCount ${inputFileMap.size()} \n")
                     }
-                    def inputFileMap = resultVersionNode.artefacts["2. input files"] ?: [:]
-                    graphite.send(
-                        "verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.inputFiles.count", 
-                        "${inputFileMap.size()}",
-                        timestamp)
                 }
             }
         }
     }
-}
-
-def connectToGraphite() {
-    Graphite graphite = new Graphite("carbon-relay.otto.easynet.de", 2003)
-//    Graphite graphite = new Graphite("localhost", 2003)
-    graphite.connect()
-    return graphite
 }
