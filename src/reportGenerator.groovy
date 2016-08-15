@@ -52,6 +52,10 @@ resultFileNames.each() { resultFileName ->
   println "result file ${resultFileName} processed"
 }
 
+println "start computing asset group metrics"
+computeAssetGroupMetrics(resultMap)
+println "computing asset group metrics finished"
+
 println "start computing team metrics"
 computeTeamMetrics(resultMap)
 println "computing team metrics finished"
@@ -202,7 +206,7 @@ def addMetric(def node, def recordMap) {
   node.metrics[recordMap.metric.trim()] = recordMap.count
 }
 
-def addTeamMetric(def node, def assetCategory, def metricName, Integer metricValue) {
+def addAssetGroupMetric(def node, def assetCategory, def metricName, Integer metricValue) {
   // add metrics map if needed
   if (! node[assetCategory]) {
     node[assetCategory] = [metrics:[:]]
@@ -226,14 +230,14 @@ def addTeamMetric(def node, def assetCategory, def metricName, Integer metricVal
   }
 }
 
-def computeTeamMetrics(def result) {
+def computeAssetGroupMetrics(def result) {
   result.assets.each() { assetVertical, resultVerticalNode ->
     resultVerticalNode.assets.each() { assetType, resultTypeNode ->
       resultTypeNode.each() { assetVersion, resultVersionNode ->
         if (resultVersionNode.outputCategory == 'public') {
           resultVersionNode.artefacts['2. input files'].each() { fileName, fileNameNode ->
             fileNameNode.metrics.each() { metricName, metricValue ->
-              addTeamMetric(
+              addAssetGroupMetric(
                 resultVersionNode.artefacts['3. asset input groups'], 
                 fileNameNode.assetCategory,
                 metricName,
@@ -246,6 +250,118 @@ def computeTeamMetrics(def result) {
     }
   }
 }
+
+def computeTeamMetrics(def result) {
+  def assetVertical2TeamMap = [
+    "aftersales": "FT4",
+    "global-pattern":"Assets",
+    "global-resources":"Assets",
+    "order":"FT1",
+    "p13n":"FT3",
+    "product":"FT5",
+    "san":"FT2",
+    "shoppages":"SHO",
+    "social-composing":"Social",
+    "social-sharing":"Social",
+    "user":"FT4",
+    "user-benefit-offers":"FT4",
+    "user-campaignmanagement":"FT4",
+    "wishlist":"FT1"
+  ]
+
+  def assetCategory2TeamMap = [
+    "000":"Assets",
+    "001":"Assets",
+    "apps":"Apps",
+    "campaign":"FT6",
+    "nav":"FT2",
+    "order":"FT1",
+    "otto":"Assets",
+    "p13n":"FT3",
+    "product":"FT5",
+    "san":"FT2",
+    "shoppages":"SHO",
+    "social":"Social",
+    "trackingBct":"Tracking",
+    "user":"FT4",
+    "wato":"FT6",
+    "wishlist":"FT1"
+  ]
+
+  result.assets.each() { assetVertical, resultVerticalNode ->
+    resultVerticalNode.assets.each() { assetType, resultTypeNode ->
+      resultTypeNode.each() { assetVersion, resultVersionNode ->
+        resultVersionNode.artefacts['2. input files'].each() { fileName, fileNameNode ->
+          def team = "unknown"
+          if (resultVersionNode.outputCategory == 'public') {
+            def assetCategoryPrefix = fileNameNode.assetCategory.split("-")[0]
+            team = assetCategory2TeamMap[assetCategoryPrefix] ?: "category_${fileNameNode.assetCategory}"
+          } else {
+            team = assetVertical2TeamMap[fileNameNode.assetVertical] ?: "vertical_${fileNameNode.assetVertical}"
+          }
+          fileNameNode.metrics.each() { metricName, metricValue ->
+            addTeamMetric(
+              result,
+              assetType,
+              team,
+              resultVersionNode.outputArtefactName,
+              metricName,
+              metricValue as Integer
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+def addTeamMetric(def result, def assetType, def team, def artefactName, def metricName, Integer metricValue) {
+  // add statistics map if needed
+  if (! result.statistics) {
+    result.statistics = [:]
+  }
+  def statisticsNode = result.statistics
+
+  // add assetType node if needed
+  if (! statisticsNode[assetType]) {
+    statisticsNode[assetType] = [:] as TreeMap
+  }
+  def assetTypeNode = statisticsNode[assetType]
+
+  // add team node if needed
+  if (! assetTypeNode[team]) {
+    assetTypeNode[team] = [artefacts:[:] as TreeMap, metrics:[:]]
+  }
+  def teamNode = assetTypeNode[team]
+  def teamMetricsNode = teamNode.metrics
+  addAdditionalMetricValue(teamMetricsNode, metricName, metricValue)
+  // add artefact node if needed
+  if (! teamNode.artefacts[artefactName]) {
+    teamNode.artefacts[artefactName] = [metrics:[:]] 
+  }
+  def teamArtefactMetricsNode = teamNode.artefacts[artefactName].metrics
+  addAdditionalMetricValue(teamArtefactMetricsNode, metricName, metricValue)
+}
+
+def addAdditionalMetricValue(def metricsNode, def metricName, def metricValue) {
+  // add metric node if nedded
+  if (! metricsNode[metricName]) {
+    metricsNode[metricName] = 0
+  }
+  // add metric value to metric node
+  metricsNode[metricName] += metricValue
+
+  // if metric name is 'loc', than handle inputFilesCount metric as well
+  if (metricName == 'loc') {
+    // add inputFilesCount metric if needed
+    if (! metricsNode['inputFilesCount']) {
+      metricsNode['inputFilesCount'] = 0
+    }
+    // increase inputFilesCount by one
+    metricsNode['inputFilesCount']++
+  }
+}
+
 
 def createHtmlReport(def result, def reportName) {
   def assetArtefact = result["assetArchive"].split("/").last()
@@ -278,6 +394,15 @@ def createHtmlReport(def result, def reportName) {
             } 
           }
           ul(class:"nav navbar-nav") {
+            li(class:"dropdown") {
+              a(class:"dropdown-toggle", "data-toggle":"dropdown", "data-hover":"tooltip", title:"Overview", href:"#", "Overview") {
+                span(class:"caret")
+              } 
+              ul(class:"dropdown-menu") {
+                li { a(href:"#overview_js", "js") }
+                li { a(href:"#overview_css", "css") }
+              }
+            }
             resultMap.sort {a,b -> 
                 a.key == "all" ? -1 : a.key<=>b.key
               }.each() { assetVertical, resultVerticalNode ->
@@ -299,10 +424,187 @@ def createHtmlReport(def result, def reportName) {
         h1 "Asset Metrics Report for ${assetArtefact}.tar"
         span "Environment:${environment}"
         br()
+
+        div(class:"container") {
+          h2(id:"overview_css", "Overview")
+          result.statistics.each() { assetType, assetTypeNode ->
+            if (assetType == "js") {
+              div(id:"overview_js", style:"padding-top: 50px;")
+            }
+            h3("${assetType}")
+            ul(class:"nav nav-pills") {
+              li(class:"active") {
+                a("data-toggle":"pill", href:"#overview_${assetType}_all", "all teams") 
+              }
+              assetTypeNode.each() { teamName, teamNode ->
+                li { 
+                  a("data-toggle":"pill", href:"#overview_${assetType}_${teamName}", "${teamName}") 
+                }
+              }
+            }
+            div(class:"tab-content") {
+              div(id:"overview_${assetType}_all", class:"tab-pane fade in active") {
+                table(class:"table table-striped table-bordered table-hover sortable panel-body") {
+                  thead {
+                    tr(class:"info") {
+                      th('class':'alignLeft', "Team")
+                      th("input files count")
+                      th {
+                        mkp.yieldUnescaped("Lines&nbsp;of Code")
+                      }
+                      th("Size")
+                      th("Min size")
+                      th("Min gzip size")
+                      if (assetType == "js") {
+                        th("Count eval")
+                        th("Count new")
+                        th("Count with")
+                        th("jQuery \$( LocatorCalls")
+                        th("jQuery \$. FunctionCalls")
+                        th("document.write")
+                        th("Count for..in")
+                        th {
+                          mkp.yieldUnescaped('Count return&nbsp;null')
+                        }
+                      }
+                      if (assetType == "css") {
+                        //th{"metrics"}
+                        th("Warnings")
+                        th("Errors")
+                        th("Media Query rules")
+                        th("Breakpunkt M rules")
+                        th("Breakpunkt L rules")
+                        th("Breakpunkt XL rules")
+                        th("Media Query bytes")
+                        th("Breakpunkt M bytes")
+                        th("Breakpunkt L bytes")
+                        th("Breakpunkt XL bytes")
+                      }
+                    }
+                  }
+                  tbody {
+                    assetTypeNode.each() { teamName, teamNode ->
+                      tr {
+                        td('class':'alignLeft',"${teamName}")
+                        td("${teamNode.metrics?.inputFilesCount}")
+                        td("${sprintf('%,d',teamNode.metrics?.loc as Integer)}")
+                        td("${sprintf('%,d',teamNode.metrics?.bytes as Integer)}")
+                        td("${sprintf('%,d',teamNode.metrics?.minBytes as Integer)}")
+                        td("${sprintf('%,d',teamNode.metrics?.minBytesGzip as Integer)}")
+                        if (assetType == "js") {
+                          td("${teamNode.metrics?.evalCount}")
+                          td("${teamNode.metrics?.newCount}")
+                          td("${teamNode.metrics?.withCount}")
+                          td("${teamNode.metrics?.jQueryLocatorCalls}")
+                          td("${teamNode.metrics?.jQueryFunctionCalls}")
+                          td("${teamNode.metrics?.documentWriteCount}")
+                          td("${teamNode.metrics?.forInCount}")
+                          td("${teamNode.metrics?.returnNullCount}")
+                        }
+                        if (assetType == "css") {
+                          //td("${teamNode.metrics}")
+                          td("${teamNode.metrics?.cssWarnings}")
+                          td("${teamNode.metrics?.cssErrors}")
+                          td("${teamNode.metrics?.mediaQueryCount}")
+                          td("${teamNode.metrics?.breakpointMCount}")
+                          td("${teamNode.metrics?.breakpointLCount}")
+                          td("${teamNode.metrics?.breakpointXLCount}")
+                          td("${sprintf('%,d',teamNode.metrics?.mediaQueryBytes as Integer)}")
+                          td("${sprintf('%,d',teamNode.metrics?.breakpointMBytes as Integer)}")
+                          td("${sprintf('%,d',teamNode.metrics?.breakpointLBytes as Integer)}")
+                          td("${sprintf('%,d',teamNode.metrics?.breakpointXLBytes as Integer)}")
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              assetTypeNode.each { teamName, teamNode ->
+                div(id:"overview_${assetType}_${teamName}", class:"tab-pane fade") {
+                  table(class:"table table-striped table-bordered table-hover sortable panel-body") {
+                    thead {
+                      tr(class:"info") {
+                        th('class':'alignLeft', "Artefact")
+                        th("input files count")
+                        th {
+                          mkp.yieldUnescaped("Lines&nbsp;of Code")
+                        }
+                        th("Size")
+                        th("Min size")
+                        th("Min gzip size")
+                        if (assetType == "js") {
+                          th("Count eval")
+                          th("Count new")
+                          th("Count with")
+                          th("jQuery \$( LocatorCalls")
+                          th("jQuery \$. FunctionCalls")
+                          th("document.write")
+                          th("Count for..in")
+                          th {
+                            mkp.yieldUnescaped('Count return&nbsp;null')
+                          }
+                        }
+                        if (assetType == "css") {
+                          //th{"metrics"}
+                          th("Warnings")
+                          th("Errors")
+                          th("Media Query rules")
+                          th("Breakpunkt M rules")
+                          th("Breakpunkt L rules")
+                          th("Breakpunkt XL rules")
+                          th("Media Query bytes")
+                          th("Breakpunkt M bytes")
+                          th("Breakpunkt L bytes")
+                          th("Breakpunkt XL bytes")
+                        }
+                      }
+                    }
+                    tbody {
+                      teamNode.artefacts.each() { artefactName, artefactNode ->
+                        tr {
+                          td('class':'alignLeft',"${artefactName}")
+                          td("${artefactNode.metrics?.inputFilesCount}")
+                          td("${sprintf('%,d',artefactNode.metrics?.loc as Integer)}")
+                          td("${sprintf('%,d',artefactNode.metrics?.bytes as Integer)}")
+                          td("${sprintf('%,d',artefactNode.metrics?.minBytes as Integer)}")
+                          td("${sprintf('%,d',artefactNode.metrics?.minBytesGzip as Integer)}")
+                          if (assetType == "js") {
+                            td("${artefactNode.metrics?.evalCount}")
+                            td("${artefactNode.metrics?.newCount}")
+                            td("${artefactNode.metrics?.withCount}")
+                            td("${artefactNode.metrics?.jQueryLocatorCalls}")
+                            td("${artefactNode.metrics?.jQueryFunctionCalls}")
+                            td("${artefactNode.metrics?.documentWriteCount}")
+                            td("${artefactNode.metrics?.forInCount}")
+                            td("${artefactNode.metrics?.returnNullCount}")
+                          }
+                          if (assetType == "css") {
+                            //td("${artefactNode.metrics}")
+                            td("${artefactNode.metrics?.cssWarnings}")
+                            td("${artefactNode.metrics?.cssErrors}")
+                            td("${artefactNode.metrics?.mediaQueryCount}")
+                            td("${artefactNode.metrics?.breakpointMCount}")
+                            td("${artefactNode.metrics?.breakpointLCount}")
+                            td("${artefactNode.metrics?.breakpointXLCount}")
+                            td("${sprintf('%,d',artefactNode.metrics?.mediaQueryBytes as Integer)}")
+                            td("${sprintf('%,d',artefactNode.metrics?.breakpointMBytes as Integer)}")
+                            td("${sprintf('%,d',artefactNode.metrics?.breakpointLBytes as Integer)}")
+                            td("${sprintf('%,d',artefactNode.metrics?.breakpointXLBytes as Integer)}")
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
         resultMap.sort {a,b -> 
-            a.key == "all" ? -1 : a.key<=>b.key
-          }.each() { assetVertical, resultVerticalNode ->
-            div(class:"container") {
+          a.key == "all" ? -1 : a.key<=>b.key
+        }.each() { assetVertical, resultVerticalNode ->
+          div(class:"container") {
             h2(id:"${assetVertical}_css", "${assetVertical == 'all' ? 'public all' : 'private ' + assetVertical}")
             resultVerticalNode.assets.each() { assetType, resultTypeNode ->
               if (assetType == "js") {
