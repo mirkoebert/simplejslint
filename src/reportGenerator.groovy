@@ -119,6 +119,7 @@ def retrieveResult(String resultFile, String assetArtefact, String environment, 
           assetVersionNode.outputCategory = recordMap.filename.split('_')[0]
           if (assetVersionNode.outputCategory == 'public') {
             assetVersionNode.artefacts['3. asset input groups'] = [:] as TreeMap
+            assetVersionNode.artefacts['4. team input'] = [:] as TreeMap
           }
         }
       }
@@ -192,6 +193,25 @@ def createResultStructureForVertical(def resultNode, def recordMap) {
 }
 
 def createResultEntry(def recordMap) {
+  def assetCategory2TeamMap = [
+    "000":"Assets",
+    "001":"Assets",
+    "apps":"Apps",
+    "campaign":"FT6",
+    "nav":"FT2",
+    "order":"FT1",
+    "otto":"Assets",
+    "p13n":"FT3",
+    "product":"FT5",
+    "san":"FT2",
+    "shoppages":"SHO",
+    "social":"Social",
+    "trackingBct":"Tracking",
+    "user":"FT4",
+    "wato":"FT6",
+    "wishlist":"FT1"
+  ]
+
   resultEntry = [:] as TreeMap
   resultEntry.asset = recordMap.asset
   resultEntry.filename = recordMap.filename
@@ -199,6 +219,7 @@ def createResultEntry(def recordMap) {
   resultEntry.metrics = [:]
   resultEntry.assetVertical = recordMap.assetVertical
   resultEntry.assetCategory = recordMap.filename.split('_')[0]
+  resultEntry.assetTeam = assetCategory2TeamMap[resultEntry.assetCategory.split("-")[0]] ?: "unknown"
   return resultEntry
 }
 
@@ -212,22 +233,16 @@ def addAssetGroupMetric(def node, def assetCategory, def metricName, Integer met
     node[assetCategory] = [metrics:[:]]
   }
   def metricsNode = node[assetCategory].metrics
-  // add metric node if nedded
-  if (! metricsNode[metricName]) {
-    metricsNode[metricName] = 0
-  }
-  // add metric value to metric node
-  metricsNode[metricName] += metricValue
+  addAdditionalMetricValue(metricsNode, metricName, metricValue)
+}
 
-  // if metric name is 'loc', than handle inputFilesCount metric as well
-  if (metricName == 'loc') {
-    // add inputFilesCount metric if needed
-    if (! metricsNode['inputFilesCount']) {
-      metricsNode['inputFilesCount'] = 0
-    }
-    // increase inputFilesCount by one
-    metricsNode['inputFilesCount']++
+def addAssetTeamMetric(def node, def assetTeam, def metricName, Integer metricValue) {
+  // add metrics map if needed
+  if (! node[assetTeam]) {
+    node[assetTeam] = [metrics:[:]]
   }
+  def metricsNode = node[assetTeam].metrics
+  addAdditionalMetricValue(metricsNode, metricName, metricValue)
 }
 
 def computeAssetGroupMetrics(def result) {
@@ -240,6 +255,12 @@ def computeAssetGroupMetrics(def result) {
               addAssetGroupMetric(
                 resultVersionNode.artefacts['3. asset input groups'], 
                 fileNameNode.assetCategory,
+                metricName,
+                metricValue as Integer
+              )
+              addAssetTeamMetric(
+                resultVersionNode.artefacts['4. team input'], 
+                fileNameNode.assetTeam,
                 metricName,
                 metricValue as Integer
               )
@@ -485,7 +506,7 @@ def createHtmlReport(def result, def reportName) {
                   tbody {
                     assetTypeNode.each() { teamName, teamNode ->
                       tr {
-                        td('class':'alignLeft',"${teamName}")
+                        td('class':'alignLeft',"${teamName}") 
                         td("${teamNode.metrics?.inputFilesCount}")
                         td("${sprintf('%,d',teamNode.metrics?.loc as Integer)}")
                         td("${sprintf('%,d',teamNode.metrics?.bytes as Integer)}")
@@ -645,9 +666,14 @@ def createHtmlReport(def result, def reportName) {
                                         break
                                       case '2. input files':
                                         th('class':'alignLeft', "artefact")
+                                        th('class':'alignLeft', "team")
                                         break
                                       case '3. asset input groups':
                                         th('class':'alignLeft', "input file group")
+                                        th("input files count")
+                                        break
+                                      case '4. team input':
+                                        th('class':'alignLeft', "team")
                                         th("input files count")
                                         break
                                       default:
@@ -697,8 +723,13 @@ def createHtmlReport(def result, def reportName) {
                                           break
                                         case '2. input files':
                                           td('class':'alignLeft','data-toggle':'tooltip',title:"${outputFileName}","${outputFileNameNode.shortenedFileName}")
+                                          td("${outputFileNameNode.assetTeam}")
                                           break
                                         case '3. asset input groups':
+                                          td('class':'alignLeft','data-toggle':'tooltip',title:"${outputFileName}","${outputFileName}")
+                                          td("${outputFileNameNode.metrics?.inputFilesCount}")
+                                          break
+                                        case '4. team input':
                                           td('class':'alignLeft','data-toggle':'tooltip',title:"${outputFileName}","${outputFileName}")
                                           td("${outputFileNameNode.metrics?.inputFilesCount}")
                                           break
@@ -821,6 +852,13 @@ def writeGraphiteMetrics(def result, def metricsOutputFileName) {
               String assetCategory = resultVersionNode.outputCategory
               inputGroupNameNode.metrics.each() { metricName, metricValue ->
                 writer.write("verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.${inputGroupName}.${metricName} ${metricValue} \n")
+              }
+            }
+            resultVersionNode.artefacts["4. team input"].each() { teamName, teamNode ->
+              String assetName = resultVersionNode.outputArtefactName.replace('.','_')
+              String assetCategory = resultVersionNode.outputCategory
+              teamNode.metrics.each() { metricName, metricValue ->
+                writer.write("verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.${teamName}.${metricName} ${metricValue} \n")
               }
             }
           }
