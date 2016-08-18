@@ -385,6 +385,12 @@ def addAdditionalMetricValue(def metricsNode, def metricName, def metricValue) {
 
 
 def createHtmlReport(def result, def reportName) {
+  def tableClass = {
+    '1. output artefact': 'outputArtefactTable',
+    '2. input files': 'inputFileTable',
+    '3. asset input groups': 'inputGroupTable',
+    '4. team input': 'teamInputTable'
+  }
   Locale.setDefault(new Locale("de", "DE"));
   def assetArtefact = result["assetArchive"].split("/").last()
   def environment = result.environment
@@ -392,7 +398,6 @@ def createHtmlReport(def result, def reportName) {
   def writer = new FileWriter(reportName)
   writer.println("<!DOCTYPE html>")
   def html   = new groovy.xml.MarkupBuilder(writer)
-  //def helper = new groovy.xml.MarkupBuilderHelper(html)
   html.setExpandEmptyElements(true)
   html.html(lang:"en") {
     head {
@@ -402,7 +407,6 @@ def createHtmlReport(def result, def reportName) {
       title 'Asset Metrics Report'
       link(href:"./css/bootstrap.min.css", rel:"stylesheet")
       link(href:"./css/assetMetricsReport.css", rel:"stylesheet")
-      //link(href:"http://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css", rel:"stylesheet")
     }
     body(class:"container-fluid") {
       nav(class:"navbar navbar-default navbar-fixed-top") {
@@ -467,7 +471,7 @@ def createHtmlReport(def result, def reportName) {
             }
             div(class:"tab-content") {
               div(id:"overview_${assetType}_all", class:"tab-pane fade in active") {
-                table(class:"table table-striped table-bordered table-hover sortable panel-body") {
+                table(class:"table table-striped table-bordered table-hover sortable panel-body overviewTable ${assetType}") {
                   thead {
                     tr(class:"info") {
                       th('class':'alignLeft', "Team")
@@ -544,7 +548,7 @@ def createHtmlReport(def result, def reportName) {
               }
               assetTypeNode.each { teamName, teamNode ->
                 div(id:"overview_${assetType}_${teamName}", class:"tab-pane fade") {
-                  table(class:"table table-striped table-bordered table-hover sortable panel-body") {
+                  table(class:"table table-striped table-bordered table-hover sortable panel-body teamOverviewTable ${assetType}") {
                     thead {
                       tr(class:"info") {
                         th('class':'alignLeft', "Artefact")
@@ -658,7 +662,7 @@ def createHtmlReport(def result, def reportName) {
                               }
                             }
                             div(id:"${assetVertical}_${assetVersion}_${artefactTitle[0]}", class:"panel-collapse collapse ${artefactTitle == '1. output artefact' ? 'in' : ''}") {
-                              table(class:"table table-striped table-bordered table-hover sortable panel-body ${artefactTitle=='2. input files' ? 'inputFileTable'  : ''} ${assetType}") {
+                              table(class:"table table-striped table-bordered table-hover sortable panel-body ${tableClass[artefactTitle]} ${assetType}") {
                                 thead {
                                   tr(class:"info") {
                                     switch (artefactTitle) {
@@ -793,12 +797,9 @@ def createHtmlReport(def result, def reportName) {
       script(src:"./js/tether.min.js") { 
         mkp.comment("Tether (necessary for Bootstrap tooltip plugin)")
       }
-//      script(src:"./js/sorttable.js") { 
-//        mkp.comment("Sorttable (http://www.kryogenix.org/code/browser/sorttable/)")
-//      }
-      // script(src:"https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js") { 
-      //   mkp.comment("DataTables (https://datatables.net)")
-      // }
+      script(src:"./js/sorttable.js") { 
+        mkp.comment("Sorttable (http://www.kryogenix.org/code/browser/sorttable/)")
+      }
       script(src:"./modules/tablefilter/tablefilter.js") {
         mkp.comment("TableFilter component (https://github.com/koalyptus/TableFilter/)")
       }

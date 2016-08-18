@@ -16,7 +16,8 @@ $(document).ready(function() {
 			base_path: './modules/tablefilter/',
 			filters_row_index: 1,
 			auto_filter: true,
-			auto_filter_delay: 100
+			auto_filter_delay: 100,
+			extensions: [{ name: 'sort' }]
 		}
 		var cssConfig = {
 			col_number_format: [
