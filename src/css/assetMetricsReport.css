@@ -47,3 +47,7 @@ a.navbar-brand {
 #metricsReport {
 	width: 1370px;
 }
+
+td.number {
+	mso-number-format:\#\.\#\#0\,00
+}

@@ -509,10 +509,10 @@ def createHtmlReport(def result, def reportName) {
                       tr {
                         td('class':'alignLeft',"${teamName}") 
                         td("${teamNode.metrics?.inputFilesCount}")
-                        td("${sprintf('%,d',teamNode.metrics?.loc as Integer)}")
-                        td("${sprintf('%,d',teamNode.metrics?.bytes as Integer)}")
-                        td("${sprintf('%,d',teamNode.metrics?.minBytes as Integer)}")
-                        td("${sprintf('%,d',teamNode.metrics?.minBytesGzip as Integer)}")
+                        td('class':'number',"${sprintf('%,d',teamNode.metrics?.loc as Integer)}")
+                        td('class':'number',"${sprintf('%,d',teamNode.metrics?.bytes as Integer)}")
+                        td('class':'number',"${sprintf('%,d',teamNode.metrics?.minBytes as Integer)}")
+                        td('class':'number',"${sprintf('%,d',teamNode.metrics?.minBytesGzip as Integer)}")
                         if (assetType == "js") {
                           td("${teamNode.metrics?.evalCount}")
                           td("${teamNode.metrics?.newCount}")
@@ -531,10 +531,10 @@ def createHtmlReport(def result, def reportName) {
                           td("${teamNode.metrics?.breakpointMCount}")
                           td("${teamNode.metrics?.breakpointLCount}")
                           td("${teamNode.metrics?.breakpointXLCount}")
-                          td("${sprintf('%,d',teamNode.metrics?.mediaQueryBytes as Integer)}")
-                          td("${sprintf('%,d',teamNode.metrics?.breakpointMBytes as Integer)}")
-                          td("${sprintf('%,d',teamNode.metrics?.breakpointLBytes as Integer)}")
-                          td("${sprintf('%,d',teamNode.metrics?.breakpointXLBytes as Integer)}")
+                          td('class':'number',"${sprintf('%,d',teamNode.metrics?.mediaQueryBytes as Integer)}")
+                          td('class':'number',"${sprintf('%,d',teamNode.metrics?.breakpointMBytes as Integer)}")
+                          td('class':'number',"${sprintf('%,d',teamNode.metrics?.breakpointLBytes as Integer)}")
+                          td('class':'number',"${sprintf('%,d',teamNode.metrics?.breakpointXLBytes as Integer)}")
                         }
                       }
                     }
@@ -586,10 +586,10 @@ def createHtmlReport(def result, def reportName) {
                         tr {
                           td('class':'alignLeft',"${artefactName}")
                           td("${artefactNode.metrics?.inputFilesCount}")
-                          td("${sprintf('%,d',artefactNode.metrics?.loc as Integer)}")
-                          td("${sprintf('%,d',artefactNode.metrics?.bytes as Integer)}")
-                          td("${sprintf('%,d',artefactNode.metrics?.minBytes as Integer)}")
-                          td("${sprintf('%,d',artefactNode.metrics?.minBytesGzip as Integer)}")
+                          td('class':'number',"${sprintf('%,d',artefactNode.metrics?.loc as Integer)}")
+                          td('class':'number',"${sprintf('%,d',artefactNode.metrics?.bytes as Integer)}")
+                          td('class':'number',"${sprintf('%,d',artefactNode.metrics?.minBytes as Integer)}")
+                          td('class':'number',"${sprintf('%,d',artefactNode.metrics?.minBytesGzip as Integer)}")
                           if (assetType == "js") {
                             td("${artefactNode.metrics?.evalCount}")
                             td("${artefactNode.metrics?.newCount}")
@@ -608,10 +608,10 @@ def createHtmlReport(def result, def reportName) {
                             td("${artefactNode.metrics?.breakpointMCount}")
                             td("${artefactNode.metrics?.breakpointLCount}")
                             td("${artefactNode.metrics?.breakpointXLCount}")
-                            td("${sprintf('%,d',artefactNode.metrics?.mediaQueryBytes as Integer)}")
-                            td("${sprintf('%,d',artefactNode.metrics?.breakpointMBytes as Integer)}")
-                            td("${sprintf('%,d',artefactNode.metrics?.breakpointLBytes as Integer)}")
-                            td("${sprintf('%,d',artefactNode.metrics?.breakpointXLBytes as Integer)}")
+                            td('class':'number',"${sprintf('%,d',artefactNode.metrics?.mediaQueryBytes as Integer)}")
+                            td('class':'number',"${sprintf('%,d',artefactNode.metrics?.breakpointMBytes as Integer)}")
+                            td('class':'number',"${sprintf('%,d',artefactNode.metrics?.breakpointLBytes as Integer)}")
+                            td('class':'number',"${sprintf('%,d',artefactNode.metrics?.breakpointXLBytes as Integer)}")
                           }
                         }
                       }
@@ -739,10 +739,11 @@ def createHtmlReport(def result, def reportName) {
                                           break
                                       }
                                       //println outputFileName
-                                      td("${sprintf('%,d',outputFileNameNode.metrics?.loc as Integer)}")
-                                      td("${sprintf('%,d',outputFileNameNode.metrics?.bytes as Integer)}")
-                                      td("${sprintf('%,d',outputFileNameNode.metrics?.minBytes as Integer)}")
-                                      td("${sprintf('%,d',outputFileNameNode.metrics?.minBytesGzip as Integer)}")
+                                      td('class':'number',"${sprintf('%,d',outputFileNameNode.metrics?.loc as Integer)}")
+                                      td('class':'number',"${sprintf('%,d',outputFileNameNode.metrics?.bytes as Integer)}")
+                                      //td("${outputFileNameNode.metrics?.bytes}")
+                                      td('class':'number',"${sprintf('%,d',outputFileNameNode.metrics?.minBytes as Integer)}")
+                                      td('class':'number',"${sprintf('%,d',outputFileNameNode.metrics?.minBytesGzip as Integer)}")
                                       if (assetType == "js") {
                                         td("${outputFileNameNode.metrics?.evalCount}")
                                         td("${outputFileNameNode.metrics?.newCount}")
@@ -761,10 +762,10 @@ def createHtmlReport(def result, def reportName) {
                                         td("${outputFileNameNode.metrics?.breakpointMCount}")
                                         td("${outputFileNameNode.metrics?.breakpointLCount}")
                                         td("${outputFileNameNode.metrics?.breakpointXLCount}")
-                                        td("${sprintf('%,d',outputFileNameNode.metrics?.mediaQueryBytes as Integer)}")
-                                        td("${sprintf('%,d',outputFileNameNode.metrics?.breakpointMBytes as Integer)}")
-                                        td("${sprintf('%,d',outputFileNameNode.metrics?.breakpointLBytes as Integer)}")
-                                        td("${sprintf('%,d',outputFileNameNode.metrics?.breakpointXLBytes as Integer)}")
+                                        td('class':'number',"${sprintf('%,d',outputFileNameNode.metrics?.mediaQueryBytes as Integer)}")
+                                        td('class':'number',"${sprintf('%,d',outputFileNameNode.metrics?.breakpointMBytes as Integer)}")
+                                        td('class':'number',"${sprintf('%,d',outputFileNameNode.metrics?.breakpointLBytes as Integer)}")
+                                        td('class':'number',"${sprintf('%,d',outputFileNameNode.metrics?.breakpointXLBytes as Integer)}")
                                       }
                                     }
                                   }
