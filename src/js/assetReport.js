@@ -42,16 +42,20 @@ $(document).ready(function() {
 	            defaultNumberFormat, defaultNumberFormat
 	        ],
 		}
-		document.querySelectorAll('table.inputFileTable.css').forEach( function(table) {
+		var cssInputFileTables = document.querySelectorAll('table.inputFileTable.css')
+		for (var i=0; i < cssInputFileTables.length ; ++i) { 
+			var table = cssInputFileTables[i];
 			var tfConfig = Object.assign({}, tfBaseConfig, cssConfig);
 			var tf = new TableFilter(table, tfConfig);
 			tf.init();
-		});
-		document.querySelectorAll('table.inputFileTable.js').forEach( function(table) {
+		};
+		var jsInputFileTables = document.querySelectorAll('table.inputFileTable.js')
+		for (var i=0; i < jsInputFileTables.length ; ++i) { 
+			var table = jsInputFileTables[i];
 			var tfConfig = Object.assign({}, tfBaseConfig, jsConfig);
 			var tf = new TableFilter(table, tfConfig);
 			tf.init();
-		});
+		};
 	}
 
 	function initDataTable() {
