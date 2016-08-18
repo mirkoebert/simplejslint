@@ -385,6 +385,7 @@ def addAdditionalMetricValue(def metricsNode, def metricName, def metricValue) {
 
 
 def createHtmlReport(def result, def reportName) {
+  Locale.setDefault(new Locale("de", "DE"));
   def assetArtefact = result["assetArchive"].split("/").last()
   def environment = result.environment
   def resultMap = result["assets"]
