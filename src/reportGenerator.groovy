@@ -401,6 +401,7 @@ def createHtmlReport(def result, def reportName) {
       title 'Asset Metrics Report'
       link(href:"./css/bootstrap.min.css", rel:"stylesheet")
       link(href:"./css/assetMetricsReport.css", rel:"stylesheet")
+      //link(href:"http://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css", rel:"stylesheet")
     }
     body(class:"container-fluid") {
       nav(class:"navbar navbar-default navbar-fixed-top") {
@@ -656,7 +657,7 @@ def createHtmlReport(def result, def reportName) {
                               }
                             }
                             div(id:"${assetVertical}_${assetVersion}_${artefactTitle[0]}", class:"panel-collapse collapse ${artefactTitle == '1. output artefact' ? 'in' : ''}") {
-                              table(class:"table table-striped table-bordered table-hover sortable panel-body") {
+                              table(class:"table table-striped table-bordered table-hover sortable panel-body ${artefactTitle=='2. input files' ? 'inputFileTable' : ''}") {
                                 thead {
                                   tr(class:"info") {
                                     switch (artefactTitle) {
@@ -712,6 +713,66 @@ def createHtmlReport(def result, def reportName) {
                                       th("Breakpunkt XL bytes")
                                     }
                                   }
+                                }
+                                if ( artefactTitle == "2. input files" ) {
+                                  /*
+                                  thead(class:"tableFilter") {
+                                    tr(class:"info") {
+                                      switch (artefactTitle) {
+                                        case '1. output artefact':
+                                          th('class':'alignLeft', "artefact")
+                                          th("input files count")
+                                          break
+                                        case '2. input files':
+                                          th('class':'alignLeft', "artefact")
+                                          th('class':'alignLeft', "team")
+                                          break
+                                        case '3. asset input groups':
+                                          th('class':'alignLeft', "input file group")
+                                          th("input files count")
+                                          break
+                                        case '4. team input':
+                                          th('class':'alignLeft', "team")
+                                          th("input files count")
+                                          break
+                                        default:
+                                          th('class':'alignLeft', "artefact")
+                                          break
+                                      }
+                                      th {
+                                        mkp.yieldUnescaped("Lines&nbsp;of Code")
+                                      }
+                                      th("Size")
+                                      th("Min size")
+                                      th("Min gzip size")
+                                      if (assetType == "js") {
+                                        th("Count eval")
+                                        th("Count new")
+                                        th("Count with")
+                                        th("jQuery \$( LocatorCalls")
+                                        th("jQuery \$. FunctionCalls")
+                                        th("document.write")
+                                        th("Count for..in")
+                                        th {
+                                          mkp.yieldUnescaped('Count return&nbsp;null')
+                                        }
+                                      }
+                                      if (assetType == "css") {
+                                        //th{"metrics"}
+                                        th("Warnings")
+                                        th("Errors")
+                                        th("Media Query rules")
+                                        th("Breakpunkt M rules")
+                                        th("Breakpunkt L rules")
+                                        th("Breakpunkt XL rules")
+                                        th("Media Query bytes")
+                                        th("Breakpunkt M bytes")
+                                        th("Breakpunkt L bytes")
+                                        th("Breakpunkt XL bytes")
+                                      }
+                                    }
+                                  }
+                                  */
                                 }
                                 tbody {
                                   artefactsNode.each() { outputFileName, outputFileNameNode ->
@@ -790,8 +851,17 @@ def createHtmlReport(def result, def reportName) {
       script(src:"./js/tether.min.js") { 
         mkp.comment("Tether (necessary for Bootstrap tooltip plugin)")
       }
-      script(src:"./js/sorttable.js") { 
-        mkp.comment("Sorttable (http://www.kryogenix.org/code/browser/sorttable/)")
+//      script(src:"./js/sorttable.js") { 
+//        mkp.comment("Sorttable (http://www.kryogenix.org/code/browser/sorttable/)")
+//      }
+      // script(src:"https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js") { 
+      //   mkp.comment("DataTables (https://datatables.net)")
+      // }
+      script(src:"./modules/tablefilter/tablefilter.js") {
+        mkp.comment("TableFilter component (https://github.com/koalyptus/TableFilter/)")
+      }
+      script(src:"./js/assetReport.js") { 
+        mkp.comment("Asset Report specific Javascript")
       }
     }
   }
@@ -808,7 +878,7 @@ def extractBaseDirFromFilename(String filename) {
 }
 
 def copyStaticArtefacts(String fromDir, String toDir) {
-  ["js","css","fonts","images"].each() { String subdir ->
+  ["js","css","fonts","images","modules"].each() { String subdir ->
     println "  $subdir"
     FileUtils.copyDirectory(new File("$fromDir/$subdir"), new File("$toDir/$subdir"))
   }
