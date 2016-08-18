@@ -1,14 +1,55 @@
 $(document).ready(function() {
+	function getQueryVariable(variable) {
+		var query = window.location.search.substring(1);
+		var vars = query.split("&");
+		for (var i=0;i<vars.length;i++) {
+			var pair = vars[i].split("=");
+			if(pair[0] == variable){return pair[1];}
+		}
+		return(false);
+	}
+
 	function initTableFilter() {
-		var tf;
-		var tfConfig = {
+		var numberFormatParameter = getQueryVariable('numberFormat')
+		var defaultNumberFormat =  numberFormatParameter ? numberFormatParameter : 'EU';
+		var tfBaseConfig = {
 			base_path: './modules/tablefilter/',
 			filters_row_index: 1,
 			auto_filter: true,
 			auto_filter_delay: 100
 		}
-		document.querySelectorAll('table.inputFileTable').forEach( function(table) {
-			tf = new TableFilter(table, tfConfig);
+		var cssConfig = {
+			col_number_format: [
+				// artefact, team, Lines of Code, Size, 
+				// Min size, Min gzip size, Warnings, Errors,
+				// Media Query rules, Breakpunkt M rules, Breakpunkt L rules, Breakpunkt XL rules,
+				// Media Query bytes, Breakpunkt M bytes, Breakpunkt L bytes, Breakpunkt XL bytes
+	            null, null, defaultNumberFormat, defaultNumberFormat,
+	            defaultNumberFormat, defaultNumberFormat, defaultNumberFormat, defaultNumberFormat,
+	            defaultNumberFormat, defaultNumberFormat, defaultNumberFormat, defaultNumberFormat,
+	            defaultNumberFormat, defaultNumberFormat, defaultNumberFormat, defaultNumberFormat
+	        ],
+		}
+		var jsConfig = {
+			col_number_format: [
+				// artefact, team, Lines of Code, Size,
+				// Min size, Min gzip size, Count eval, Count new, 
+				// Count with, jQuery $( LocatorCalls, jQuery $. FunctionCalls, document.write
+				// Count for..in, Count return null
+	            null, null, defaultNumberFormat, defaultNumberFormat,
+	            defaultNumberFormat, defaultNumberFormat, defaultNumberFormat, defaultNumberFormat,
+	            defaultNumberFormat, defaultNumberFormat, defaultNumberFormat, defaultNumberFormat,
+	            defaultNumberFormat, defaultNumberFormat
+	        ],
+		}
+		document.querySelectorAll('table.inputFileTable.css').forEach( function(table) {
+			var tfConfig = Object.assign({}, tfBaseConfig, cssConfig);
+			var tf = new TableFilter(table, tfConfig);
+			tf.init();
+		});
+		document.querySelectorAll('table.inputFileTable.js').forEach( function(table) {
+			var tfConfig = Object.assign({}, tfBaseConfig, jsConfig);
+			var tf = new TableFilter(table, tfConfig);
 			tf.init();
 		});
 	}

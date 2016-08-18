@@ -657,7 +657,7 @@ def createHtmlReport(def result, def reportName) {
                               }
                             }
                             div(id:"${assetVertical}_${assetVersion}_${artefactTitle[0]}", class:"panel-collapse collapse ${artefactTitle == '1. output artefact' ? 'in' : ''}") {
-                              table(class:"table table-striped table-bordered table-hover sortable panel-body ${artefactTitle=='2. input files' ? 'inputFileTable' : ''}") {
+                              table(class:"table table-striped table-bordered table-hover sortable panel-body ${artefactTitle=='2. input files' ? 'inputFileTable'  : ''} ${assetType}") {
                                 thead {
                                   tr(class:"info") {
                                     switch (artefactTitle) {
@@ -713,66 +713,6 @@ def createHtmlReport(def result, def reportName) {
                                       th("Breakpunkt XL bytes")
                                     }
                                   }
-                                }
-                                if ( artefactTitle == "2. input files" ) {
-                                  /*
-                                  thead(class:"tableFilter") {
-                                    tr(class:"info") {
-                                      switch (artefactTitle) {
-                                        case '1. output artefact':
-                                          th('class':'alignLeft', "artefact")
-                                          th("input files count")
-                                          break
-                                        case '2. input files':
-                                          th('class':'alignLeft', "artefact")
-                                          th('class':'alignLeft', "team")
-                                          break
-                                        case '3. asset input groups':
-                                          th('class':'alignLeft', "input file group")
-                                          th("input files count")
-                                          break
-                                        case '4. team input':
-                                          th('class':'alignLeft', "team")
-                                          th("input files count")
-                                          break
-                                        default:
-                                          th('class':'alignLeft', "artefact")
-                                          break
-                                      }
-                                      th {
-                                        mkp.yieldUnescaped("Lines&nbsp;of Code")
-                                      }
-                                      th("Size")
-                                      th("Min size")
-                                      th("Min gzip size")
-                                      if (assetType == "js") {
-                                        th("Count eval")
-                                        th("Count new")
-                                        th("Count with")
-                                        th("jQuery \$( LocatorCalls")
-                                        th("jQuery \$. FunctionCalls")
-                                        th("document.write")
-                                        th("Count for..in")
-                                        th {
-                                          mkp.yieldUnescaped('Count return&nbsp;null')
-                                        }
-                                      }
-                                      if (assetType == "css") {
-                                        //th{"metrics"}
-                                        th("Warnings")
-                                        th("Errors")
-                                        th("Media Query rules")
-                                        th("Breakpunkt M rules")
-                                        th("Breakpunkt L rules")
-                                        th("Breakpunkt XL rules")
-                                        th("Media Query bytes")
-                                        th("Breakpunkt M bytes")
-                                        th("Breakpunkt L bytes")
-                                        th("Breakpunkt XL bytes")
-                                      }
-                                    }
-                                  }
-                                  */
                                 }
                                 tbody {
                                   artefactsNode.each() { outputFileName, outputFileNameNode ->
