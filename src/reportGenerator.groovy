@@ -864,14 +864,14 @@ def writeGraphiteMetrics(def result, def metricsOutputFileName) {
               String assetName = resultVersionNode.outputArtefactName.replace('.','_')
               String assetCategory = resultVersionNode.outputCategory
               inputGroupNameNode.metrics.each() { metricName, metricValue ->
-                writer.write("verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.${inputGroupName}.${metricName} ${metricValue} \n")
+                writer.write("verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.inputGroup.${inputGroupName}.${metricName} ${metricValue} \n")
               }
             }
             resultVersionNode.artefacts["4. team input"].each() { teamName, teamNode ->
               String assetName = resultVersionNode.outputArtefactName.replace('.','_')
               String assetCategory = resultVersionNode.outputCategory
               teamNode.metrics.each() { metricName, metricValue ->
-                writer.write("verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.${teamName}.${metricName} ${metricValue} \n")
+                writer.write("verticals.scale.assets.${environment}.${assetCategory}.${assetVertical}.${assetType}.${assetName}.team.${teamName}.${metricName} ${metricValue} \n")
               }
             }
           }
