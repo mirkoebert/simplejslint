@@ -106,6 +106,10 @@ def retrieveResult(String resultFile, String assetArtefact, String environment, 
         //println "do not handle development and test only versions: ${recordMap.assetVersion}"
         return 
       } 
+      if (recordMap.assetSubDir == "fonts") {
+        // do not handle font css files
+        return 
+      }
 
       // Dateinamensbestandteile ermitteln und verarbeiten
       computeFileNameElements(recordMap)
@@ -139,6 +143,7 @@ def computePathElements(def recordMap) {
   recordMap.assetVertical = assetBasePathParts.length > 1 ? assetBasePathParts[1] : "unknownAssetVertical"
   recordMap.assetType = assetBasePathParts.length > 2 ? assetBasePathParts[2] : "unknownAssetType"
   recordMap.assetVersion = assetBasePathParts.length > 3 ? assetBasePathParts[3] : "unknownAssetVersion"
+  recordMap.assetSubDir = assetBasePathParts.length > 4 ? assetBasePathParts[4] : ""
 }
 
 def computeFileNameElements(def e) {
